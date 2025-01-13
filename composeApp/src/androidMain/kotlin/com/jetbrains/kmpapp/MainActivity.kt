@@ -6,6 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.LaunchedEffect
+import io.github.aakira.napier.DebugAntilog
+import io.github.aakira.napier.Napier
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,7 +18,8 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(isSystemInDarkTheme()) {
                 enableEdgeToEdge()
             }
-            App()
+            Napier.base(DebugAntilog())
+            MainApplication()
         }
     }
 }

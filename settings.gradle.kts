@@ -1,4 +1,4 @@
-rootProject.name = "KMP-App-Template"
+rootProject.name = "MartyBoxApp"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {

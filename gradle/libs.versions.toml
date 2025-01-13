@@ -1,30 +1,69 @@
 [versions]
-agp = "8.6.1"
+agp = "8.3.2"
 androidx-activityCompose = "1.9.3"
 androidx-ui-tooling = "1.7.4"
 coil = "3.0.0"
 compose-multiplatform = "1.7.0"
 koin = "4.0.0"
+koinAndroid = "3.5.6"
+koinAndroidxCompose = "3.5.6"
 kotlin = "2.0.21"
 ktor = "3.0.0"
+multiplatformSettings = "0.8.1"
 navigationCompose = "2.8.0-alpha10"
+libresCompose = "1.2.2"
+ktLint = "11.6.0"
+detekt = "1.19.0"
+gradleVersionUpdate = "0.42.0"
+gson = "2.10.1"
+napier = "2.6.1"
+camera = "1.3.4"
+barcodeScanning = "17.0.2"
+cameraLifecycle = "1.2.0"
+coreKtx = "1.13.1"
+easyqrscan = "0.2.0"
+urlencoderLib = "1.6.0"
 
 [libraries]
-androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
-androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "androidx-ui-tooling" }
-androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "androidx-ui-tooling" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-ktor = { group = "io.coil-kt.coil3", name = "coil-network-ktor3", version.ref = "coil" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koinAndroid" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koinAndroidxCompose" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-plugins = { module = "io.ktor:ktor-client-plugins", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatformSettings" }
+multiplatformSettings-noArg = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatformSettings" }
+multiplatform-settings-coroutines = { module = "com.russhwolf:multiplatform-settings-coroutines", version.ref = "multiplatformSettings" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+gradle-plugin = { module = "io.github.skeptick.libres:gradle-plugin", version.ref = "libresCompose" }
+libres-compose = { module = "io.github.skeptick.libres:libres-compose", version.ref = "libresCompose" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+napier = { module = "io.github.aakira:napier", version.ref = "napier" }
+androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camera" }
+androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camera" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraLifecycle" }
+androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraLifecycle" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
+androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "androidx-ui-tooling" }
+androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "androidx-ui-tooling" }
+barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcodeScanning" }
+easyqrscan = { module = "io.github.kalinjul.easyqrscan:scanner", version.ref = "easyqrscan" }
+urlencoder = { module = "net.thauvin.erik.urlencoder:urlencoder-lib", version.ref = "urlencoderLib" }
 
 [plugins]
+ktLint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktLint" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+gradleVersionUpdates = { id = "com.github.ben-manes.versions", version.ref = "gradleVersionUpdate" }
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }

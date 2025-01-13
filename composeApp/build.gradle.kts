@@ -1,12 +1,19 @@
+
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
+    id("io.github.skeptick.libres")
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinxSerialization)
+}
+
+repositories {
+    mavenCentral()
+    google()
 }
 
 kotlin {
@@ -29,15 +36,36 @@ kotlin {
     }
 
     sourceSets {
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
+        val androidUnitTest by getting {
+            dependencies {
+                implementation(kotlin("test-junit"))
+            }
+        }
+        val iosTest by creating {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
+
         androidMain.dependencies {
             implementation(libs.androidx.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.ktor.client.plugins)
+            implementation(libs.koin.android)
+            implementation(libs.koin.androidx.compose)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }
         commonMain.dependencies {
+            implementation(libs.androidx.core.ktx)
+
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
@@ -46,14 +74,36 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
 
             implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.client.websockets)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
 
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor)
             implementation(libs.koin.core)
+            implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.navigation.compose)
+            implementation(libs.libres.compose)
+            implementation(libs.gson)
+
+            // CameraX
+            implementation(libs.androidx.camera.camera2)
+            implementation(libs.androidx.camera.lifecycle)
+            implementation(libs.androidx.camera.core)
+            implementation(libs.androidx.camera.view)
+            implementation(libs.barcode.scanning)
+
+            api(libs.napier)
+            implementation(libs.easyqrscan)
+
+            implementation(libs.multiplatform.settings)
+            implementation(libs.multiplatformSettings.noArg)
+            implementation(libs.multiplatform.settings.coroutines)
+            implementation(libs.urlencoder)
+
+
         }
     }
 }
@@ -87,4 +137,11 @@ android {
 
 dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
+}
+
+libres {
+    generatedClassName = "MainRes" // "Res" by default
+    generateNamedArguments = true // false by default
+    baseLocaleLanguageCode = "ru" // "en" by default
+    camelCaseNamesForAppleFramework = false // false by default
 }
