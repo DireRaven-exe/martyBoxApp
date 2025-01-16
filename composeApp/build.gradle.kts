@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    id("io.github.skeptick.libres")
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
@@ -61,6 +60,9 @@ kotlin {
             implementation(libs.koin.androidx.compose)
         }
         iosMain.dependencies {
+            implementation(libs.multiplatform.settings)
+            implementation(libs.multiplatformSettings.noArg)
+            implementation(libs.multiplatform.settings.coroutines)
             implementation(libs.ktor.client.darwin)
         }
         commonMain.dependencies {
@@ -85,7 +87,6 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.navigation.compose)
-            implementation(libs.libres.compose)
             implementation(libs.gson)
 
             // CameraX
@@ -137,11 +138,4 @@ android {
 
 dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
-}
-
-libres {
-    generatedClassName = "MainRes" // "Res" by default
-    generateNamedArguments = true // false by default
-    baseLocaleLanguageCode = "ru" // "en" by default
-    camelCaseNamesForAppleFramework = false // false by default
 }

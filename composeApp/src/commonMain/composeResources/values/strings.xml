@@ -1,15 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <resources>
-    <string name="label_title">Title</string>
-    <string name="label_artist">Artist</string>
-    <string name="label_date">Date</string>
-    <string name="label_dimensions">Dimensions</string>
-    <string name="label_medium">Medium</string>
-    <string name="label_department">Department</string>
-    <string name="label_repository">Repository</string>
-    <string name="label_credits">Credits</string>
-
-    <string name="back">Back</string>
-
-    <string name="no_data_available">No data available</string>
+    <string name="app_name">MartyBoxApp</string>
+    <string name="pitch">Тональность</string>
+    <string name="tempo">Темп</string>
+    <string name="volume">Громкость</string>
+    <string name="title">Название</string>
+    <string name="artist">Исполнитель</string>
+    <string name="autoFullScreen">Авто полный экран</string>
+    <string name="adaptatingTempo">Изменять темп вместо скорости</string>
+    <string name="defaultVideoUse">Использовать видеоряд по умолчанию</string>
+    <string name="singingAssessment">Оценка пения</string>
+    <string name="soundInPause">Музыка в паузах</string>
+    <string name="search">Поиск</string>
+    <string name="indicateTableNumber">Укажите номер стола</string>
+    <string name="scanQRcode">Отсканируйте QR-код</string>
+    <string name="topBarScanQRcode">Сканирование QR-кода</string>
+    <string name="scan">Сканировать</string>
+    <string name="accept">Принять</string>
+    <string name="reconnect">Переподключиться</string>
+    <string name="noConnectionToServer">Нет соединения с сервером</string>
+    <string name="ConfirmAddSong">Вы действительно хотите заказать данную песню?</string>
+    <string name="ConfirmADisconnection">Подтвердите выход на главный экран</string>
+    <string name="requestPermission">Запросить разрешение</string>
+    <string name="cameraImportanceMessage">Камера важна для этого приложения. Пожалуйста, дайте разрешение.</string>
+    <string name="cameraPermissionRequiredMessage">Для использования этой функции требуется разрешение на использование камеры. Пожалуйста, предоставьте разрешение. </string>
+    <string name="openSettings">Открыть настройки </string>
+    <string name="moveBottomSheet">Тянуть</string>
+    <string name="no_songs_found">Список песен пустой</string>
+    <string name="attempting_to_connect">Попытка подключения</string>
+    <string name="cancel">Отмена</string>
 </resources>

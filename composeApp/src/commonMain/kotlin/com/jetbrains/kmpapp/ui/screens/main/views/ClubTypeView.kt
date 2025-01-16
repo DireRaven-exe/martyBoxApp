@@ -34,10 +34,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.dp
-import com.jetbrains.kmpapp.MainRes
 import com.jetbrains.kmpapp.feature.commands.CommandHandler
 import com.jetbrains.kmpapp.ui.components.SongCard
 import com.jetbrains.kmpapp.utils.MainUiState
+import martyboxapp.composeapp.generated.resources.Res
+import martyboxapp.composeapp.generated.resources.no_songs_found
+import martyboxapp.composeapp.generated.resources.search
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,7 +64,7 @@ fun ClubTypeView(
                         onSearch = { expanded = false },
                         expanded = expanded,
                         onExpandedChange = { expanded = it },
-                        placeholder = { Text(MainRes.string.search) },
+                        placeholder = { Text(stringResource(Res.string.search)) },
                         leadingIcon = {
                             Icon(
                                 Icons.Default.Search,
@@ -102,7 +105,7 @@ fun ClubTypeView(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = MainRes.string.no_songs_found
+                            text = stringResource(Res.string.no_songs_found)
                         )
                     }
                 }
@@ -185,7 +188,7 @@ fun ClubTypeView(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = MainRes.string.no_songs_found
+                    text = stringResource(Res.string.no_songs_found)
                 )
             }
         }

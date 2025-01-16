@@ -6,6 +6,7 @@ package com.jetbrains.kmpapp.di
 import com.russhwolf.settings.AppleSettings
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
+import platform.Foundation.NSUserDefaults
 
 actual class MultiplatformSettingsWrapper {
     actual fun createSettings(): ObservableSettings {

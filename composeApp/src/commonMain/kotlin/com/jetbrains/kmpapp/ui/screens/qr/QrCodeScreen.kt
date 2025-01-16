@@ -21,7 +21,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.jetbrains.kmpapp.MainRes
+import martyboxapp.composeapp.generated.resources.Res
+import martyboxapp.composeapp.generated.resources.openSettings
+import martyboxapp.composeapp.generated.resources.requestPermission
+import martyboxapp.composeapp.generated.resources.topBarScanQRcode
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.publicvalue.multiplatform.qrcode.CodeType
 import org.publicvalue.multiplatform.qrcode.ScannerWithPermissions
@@ -37,7 +41,7 @@ fun QrCodeScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = MainRes.string.topBarScanQRcode)
+                    Text(text = stringResource(Res.string.topBarScanQRcode))
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
@@ -66,10 +70,10 @@ fun QrCodeScreen(
                     ) {
                         Text(
                             modifier = Modifier.padding(6.dp),
-                            text = MainRes.string.requestPermission
+                            text =stringResource(Res.string.requestPermission)
                         )
                         Button(onClick = { state.goToSettings() }) {
-                            Text(MainRes.string.openSettings)
+                            Text(stringResource(Res.string.openSettings))
                         }
                     }
                 }

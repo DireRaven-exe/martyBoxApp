@@ -23,9 +23,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.jetbrains.kmpapp.MainRes
 import com.jetbrains.kmpapp.domain.models.Song
-import io.github.skeptick.libres.compose.painterResource
+import martyboxapp.composeapp.generated.resources.Res
+import martyboxapp.composeapp.generated.resources.pause
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun SongCard(song: Song, isPlaying: Boolean, onPlayClick: (Song) -> Unit, onAddClick: (Song) -> Unit) {
@@ -56,7 +57,7 @@ fun SongCard(song: Song, isPlaying: Boolean, onPlayClick: (Song) -> Unit, onAddC
             ) {
                 if (isPlaying) {
                     Icon(
-                        painter = painterResource(MainRes.image.pause),
+                        painter = painterResource(Res.drawable.pause),
                         contentDescription = "Pause",
                         modifier = Modifier.size(24.dp)
                     )

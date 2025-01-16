@@ -8,6 +8,7 @@ import com.jetbrains.kmpapp.ui.screens.home.HomeViewModel
 import com.jetbrains.kmpapp.ui.screens.main.MainViewModel
 import com.jetbrains.kmpapp.ui.screens.qr.QrCodeViewModel
 import com.russhwolf.settings.ExperimentalSettingsApi
+import com.russhwolf.settings.ObservableSettings
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -21,7 +22,7 @@ import org.koin.core.module.Module
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
 
-fun sharedModules() = module {
+fun commonModule() = module {
     single {
         val json = Json { ignoreUnknownKeys = true }
         HttpClient {
@@ -38,16 +39,27 @@ fun sharedModules() = module {
     }
 
     //single { AppPreferencesRepository(settings = get()) }
-    single<AppPreferencesRepository> { AppPreferencesRepositoryImpl(observableSettings = get()) }
+    single<AppPreferencesRepository> {
+        val settings = get<ObservableSettings>()
+        AppPreferencesRepositoryImpl(observableSettings = settings)
+    }
     factory { HomeViewModel(appPreferencesRepository = get()) }
     factory { MainViewModel(appPreferencesRepository = get()) }
     factory { QrCodeViewModel(appPreferencesRepository = get()) }
 }
 
-fun initKoin(enableNetworkLogs: Boolean = true, appDeclaration: KoinAppDeclaration = {}) =
+//fun initKoin() {//enableNetworkLogs: Boolean = true, appDeclaration: KoinAppDeclaration = {}) =
+//    startKoin {
+//        modules(sharedModules())
+//}
+
+fun initKoin(appDeclaration: KoinAppDeclaration = {}) =
     startKoin {
+        modules(commonModule(), platformModule())
         appDeclaration()
-        modules(platformModule(), sharedModules())
     }
+
+// called by iOS client
+fun initKoin() = initKoin {}
 
 expect fun platformModule(): Module

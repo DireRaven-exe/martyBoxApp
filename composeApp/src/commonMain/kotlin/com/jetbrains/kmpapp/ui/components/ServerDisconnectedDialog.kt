@@ -21,9 +21,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.jetbrains.kmpapp.MainRes
 import com.jetbrains.kmpapp.ui.theme.buttonDisconnectDialog
 import com.jetbrains.kmpapp.ui.theme.buttonReconnectDialog
+import martyboxapp.composeapp.generated.resources.Res
+import martyboxapp.composeapp.generated.resources.accept
+import martyboxapp.composeapp.generated.resources.noConnectionToServer
+import martyboxapp.composeapp.generated.resources.reconnect
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ServerDisconnectedDialog(onDisconnect: () -> Unit, onReconnect: () -> Unit) {
@@ -38,7 +42,7 @@ fun ServerDisconnectedDialog(onDisconnect: () -> Unit, onReconnect: () -> Unit) 
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = MainRes.string.noConnectionToServer,
+                    text = stringResource(Res.string.noConnectionToServer),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -54,7 +58,7 @@ fun ServerDisconnectedDialog(onDisconnect: () -> Unit, onReconnect: () -> Unit) 
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = MainRes.string.accept,
+                            text = stringResource(Res.string.accept),
                             style = MaterialTheme.typography.labelLarge.copy(color = Color.White)
                         )
                     }
@@ -73,7 +77,7 @@ fun ServerDisconnectedDialog(onDisconnect: () -> Unit, onReconnect: () -> Unit) 
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = MainRes.string.reconnect,
+                            text = stringResource(Res.string.reconnect),
                             style = MaterialTheme.typography.labelLarge.copy(color = Color.White)
                         )
                     }

@@ -49,11 +49,26 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.jetbrains.kmpapp.MainRes
 import com.jetbrains.kmpapp.feature.commands.CommandHandler
 import com.jetbrains.kmpapp.ui.components.SongCard
 import com.jetbrains.kmpapp.utils.MainUiState
-import io.github.skeptick.libres.compose.painterResource
+import martyboxapp.composeapp.generated.resources.Res
+import martyboxapp.composeapp.generated.resources.artist
+import martyboxapp.composeapp.generated.resources.autoFullScreen
+import martyboxapp.composeapp.generated.resources.moveBottomSheet
+import martyboxapp.composeapp.generated.resources.music_plus
+import martyboxapp.composeapp.generated.resources.next
+import martyboxapp.composeapp.generated.resources.no_songs_found
+import martyboxapp.composeapp.generated.resources.pause
+import martyboxapp.composeapp.generated.resources.pitch
+import martyboxapp.composeapp.generated.resources.search
+import martyboxapp.composeapp.generated.resources.singingAssessment
+import martyboxapp.composeapp.generated.resources.soundInPause
+import martyboxapp.composeapp.generated.resources.tempo
+import martyboxapp.composeapp.generated.resources.title
+import martyboxapp.composeapp.generated.resources.volume
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -97,14 +112,14 @@ fun HomeTypeView(
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
                             Text(
-                                text = currentSong?.title ?: MainRes.string.title,
+                                text = currentSong?.title ?: stringResource(Res.string.title),
                                 style = MaterialTheme.typography.titleLarge,
                                 maxLines = 1,
                                 fontWeight = FontWeight.Bold
                             )
 
                             Text(
-                                text = currentSong?.artist ?: MainRes.string.artist,
+                                text = currentSong?.artist ?: stringResource(Res.string.artist),
                                 style = MaterialTheme.typography.titleSmall,
                                 maxLines = 1
                             )
@@ -124,7 +139,7 @@ fun HomeTypeView(
                                 )
                             } else {
                                 Icon(
-                                    painter = painterResource(MainRes.image.pause),
+                                    painter = painterResource(Res.drawable.pause),
                                     contentDescription = "Pause",
                                     modifier = Modifier.size(48.dp)
                                 )
@@ -132,7 +147,7 @@ fun HomeTypeView(
                         }
                         IconButton(onClick = { commandHandler.next() }) {
                             Icon(
-                                painter = painterResource(MainRes.image.next),
+                                painter = painterResource(Res.drawable.next),
                                 contentDescription = "Next",
                                 modifier = Modifier.size(48.dp)
                             )
@@ -142,7 +157,7 @@ fun HomeTypeView(
                             onClick = { commandHandler.switchPlusMinus() }
                         ) {
                             Icon(
-                                painter = painterResource(MainRes.image.music_plus),
+                                painter = painterResource(Res.drawable.music_plus),
                                 contentDescription = "Next",
                                 modifier = Modifier.size(32.dp),
                             )
@@ -150,7 +165,7 @@ fun HomeTypeView(
                     }
                 }
 
-                Text(text = MainRes.string.volume + ": ${(uiState.volume * 100).roundToInt()}%")
+                Text(text = stringResource(Res.string.volume) + ": ${(uiState.volume * 100).roundToInt()}%")
                 Slider(
                     value = uiState.volume,
                     onValueChange = {
@@ -161,7 +176,7 @@ fun HomeTypeView(
                     modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp)
                 )
 
-                Text(text = MainRes.string.tempo + ": ${uiState.tempo.format(2)}x")
+                Text(text = stringResource(Res.string.tempo) + ": ${uiState.tempo.format(2)}x")
                 Slider(
                     value = uiState.tempo,
                     onValueChange = {
@@ -172,7 +187,7 @@ fun HomeTypeView(
                     modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp)
                 )
 
-                Text(MainRes.string.pitch + ": ${uiState.pitch.format(2)}")
+                Text(stringResource(Res.string.pitch) + ": ${uiState.pitch.format(2)}")
                 Slider(
                     value = uiState.pitch.toFloat(),
                     onValueChange = {
@@ -199,7 +214,7 @@ fun HomeTypeView(
                         }
                     )
                     Text(
-                        text = MainRes.string.autoFullScreen,
+                        text = stringResource(Res.string.autoFullScreen),
                         style = MaterialTheme.typography.titleMedium,
                         maxLines = 1
                     )
@@ -219,7 +234,7 @@ fun HomeTypeView(
                         }
                     )
                     Text(
-                        text = MainRes.string.singingAssessment,
+                        text = stringResource(Res.string.singingAssessment),
                         style = MaterialTheme.typography.titleMedium,
                         maxLines = 1
                     )
@@ -239,7 +254,7 @@ fun HomeTypeView(
                         }
                     )
                     Text(
-                        text = MainRes.string.soundInPause,
+                        text = stringResource(Res.string.soundInPause),
                         style = MaterialTheme.typography.titleMedium,
                         maxLines = 1
                     )
@@ -258,18 +273,18 @@ fun HomeTypeView(
                 if (isSheetExpanded) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown, // Стрелка вниз
-                        contentDescription = MainRes.string.moveBottomSheet,
+                        contentDescription = stringResource(Res.string.moveBottomSheet),
                         modifier = Modifier.size(24.dp)
                     )
                 } else {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowUp, // Стрелка вверх
-                        contentDescription = MainRes.string.moveBottomSheet,
+                        contentDescription = stringResource(Res.string.moveBottomSheet),
                         modifier = Modifier.size(24.dp)
                     )
                 }
                 Text(
-                    text = MainRes.string.moveBottomSheet,
+                    text = stringResource(Res.string.moveBottomSheet),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(start = 8.dp)
                 )
@@ -287,7 +302,7 @@ fun HomeTypeView(
                         onSearch = { expanded = false },
                         expanded = expanded,
                         onExpandedChange = { expanded = it },
-                        placeholder = { Text(MainRes.string.search) },
+                        placeholder = { Text(stringResource(Res.string.search)) },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     )
                 },
@@ -323,7 +338,7 @@ fun HomeTypeView(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = MainRes.string.no_songs_found
+                            text = stringResource(Res.string.no_songs_found)
                         )
                     }
                 }
@@ -409,7 +424,7 @@ fun HomeTypeView(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = MainRes.string.no_songs_found
+                    text = stringResource(Res.string.no_songs_found)
                 )
             }
         }

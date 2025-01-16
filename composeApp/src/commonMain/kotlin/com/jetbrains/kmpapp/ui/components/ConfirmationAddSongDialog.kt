@@ -12,7 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.jetbrains.kmpapp.MainRes
+import martyboxapp.composeapp.generated.resources.ConfirmAddSong
+import martyboxapp.composeapp.generated.resources.Res
+import martyboxapp.composeapp.generated.resources.accept
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ConfirmationAddSongDialog(onDismiss: () -> Unit, addSong: () -> Unit) {
@@ -27,7 +30,7 @@ fun ConfirmationAddSongDialog(onDismiss: () -> Unit, addSong: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = MainRes.string.ConfirmAddSong,
+                    text = stringResource(Res.string.ConfirmAddSong),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -36,7 +39,7 @@ fun ConfirmationAddSongDialog(onDismiss: () -> Unit, addSong: () -> Unit) {
                     addSong()
                     onDismiss()
                 } ) {
-                    Text(MainRes.string.accept)
+                    Text(stringResource(Res.string.accept))
                 }
             }
         }

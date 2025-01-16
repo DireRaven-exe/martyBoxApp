@@ -25,9 +25,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.jetbrains.kmpapp.MainRes
 import com.jetbrains.kmpapp.ui.theme.logoTint
-import io.github.skeptick.libres.compose.painterResource
+import martyboxapp.composeapp.generated.resources.Res
+import martyboxapp.composeapp.generated.resources.app_name
+import martyboxapp.composeapp.generated.resources.martin_player_logo
+import martyboxapp.composeapp.generated.resources.qr_code
+import martyboxapp.composeapp.generated.resources.scan
+import martyboxapp.composeapp.generated.resources.scanQRcode
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 @Composable
@@ -59,8 +65,8 @@ fun HomeScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Image(
-                        painter = painterResource(MainRes.image.martin_player_logo),
-                        contentDescription = MainRes.string.app_name,
+                        painter = painterResource(Res.drawable.martin_player_logo),
+                        contentDescription = stringResource(Res.string.app_name),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(200.dp),
@@ -71,7 +77,7 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
-                        text = MainRes.string.scanQRcode,
+                        text = stringResource(Res.string.scanQRcode),
                         style = MaterialTheme.typography.headlineMedium,
                         maxLines = 1,
                         fontWeight = FontWeight.Bold,
@@ -88,12 +94,12 @@ fun HomeScreen(
                             modifier = Modifier.padding(horizontal = 8.dp)
                         ) {
                             Icon(
-                                painter = painterResource(MainRes.image.qr_code),
+                                painter = painterResource(Res.drawable.qr_code),
                                 contentDescription = "QR Code",
                                 modifier = Modifier.size(24.dp)
                             )
                             Text(
-                                text = MainRes.string.scan,
+                                text = stringResource(Res.string.scan),
                                 style = MaterialTheme.typography.titleMedium,
                                 maxLines = 1,
                                 fontWeight = FontWeight.Bold,

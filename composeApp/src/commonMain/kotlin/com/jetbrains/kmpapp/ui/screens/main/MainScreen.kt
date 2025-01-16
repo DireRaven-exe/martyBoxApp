@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
-import com.jetbrains.kmpapp.MainRes
 import com.jetbrains.kmpapp.feature.backhandler.OnBackPressedHandler
 import com.jetbrains.kmpapp.feature.commands.CommandHandler
 import com.jetbrains.kmpapp.ui.components.ConfirmDisconnectionDialog
@@ -42,6 +41,12 @@ import com.jetbrains.kmpapp.ui.screens.main.views.ClubTypeView
 import com.jetbrains.kmpapp.ui.screens.main.views.HomeTypeView
 import com.jetbrains.kmpapp.utils.Constants
 import io.github.aakira.napier.Napier
+import martyboxapp.composeapp.generated.resources.Res
+import martyboxapp.composeapp.generated.resources.accept
+import martyboxapp.composeapp.generated.resources.attempting_to_connect
+import martyboxapp.composeapp.generated.resources.cancel
+import martyboxapp.composeapp.generated.resources.indicateTableNumber
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 @Composable
@@ -203,7 +208,7 @@ fun MainScreen(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = MainRes.string.indicateTableNumber,
+                                text = stringResource(Res.string.indicateTableNumber),
                                 style = MaterialTheme.typography.titleLarge,
                                 maxLines = 1,
                                 fontWeight = FontWeight.Bold
@@ -231,7 +236,7 @@ fun MainScreen(
                             },
                             modifier = Modifier.padding(16.dp)
                         ) {
-                            Text(text = MainRes.string.accept)
+                            Text(text = stringResource(Res.string.accept))
                         }
                     }
                 }
@@ -254,7 +259,7 @@ fun LoadingScreen(onCancelClick: () -> Unit) {
             modifier = Modifier.fillMaxSize()
         ) {
             Text(
-                text = MainRes.string.attempting_to_connect,
+                text = stringResource(Res.string.attempting_to_connect),
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
@@ -264,7 +269,7 @@ fun LoadingScreen(onCancelClick: () -> Unit) {
             )
 
             Button(onClick = onCancelClick) {
-                Text(text = MainRes.string.cancel)
+                Text(text = stringResource(Res.string.cancel))
             }
         }
     }
