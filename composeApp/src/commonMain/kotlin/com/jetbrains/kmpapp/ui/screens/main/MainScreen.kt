@@ -1,7 +1,9 @@
 package com.jetbrains.kmpapp.ui.screens.main
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,12 +16,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,8 +41,9 @@ import com.jetbrains.kmpapp.ui.components.ServerDisconnectedDialog
 import com.jetbrains.kmpapp.ui.components.rememberPickerState
 import com.jetbrains.kmpapp.ui.screens.main.views.ClubTypeView
 import com.jetbrains.kmpapp.ui.screens.main.views.HomeTypeView
+import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
+import com.jetbrains.kmpapp.ui.theme.buttonDisconnectDialog
 import com.jetbrains.kmpapp.utils.Constants
-import io.github.aakira.napier.Napier
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.accept
 import martyboxapp.composeapp.generated.resources.attempting_to_connect
@@ -52,7 +55,8 @@ import org.koin.compose.koinInject
 @Composable
 fun MainScreen(
     navController: NavHostController,
-    mainViewModel: MainViewModel = koinInject()
+    mainViewModel: MainViewModel = koinInject(),
+    paddingValues: PaddingValues
 ) {
     val uiState = mainViewModel.mainUiState.collectAsState().value
     val savedTableValue = uiState.currentTable
@@ -62,7 +66,8 @@ fun MainScreen(
     var showConfirmDisconnectionDialog = false
     var isManuallyDisconnected by rememberSaveable { mutableStateOf(false) }
     var isReconnectAllowed = true
-    var isLoadingData by remember { mutableStateOf(false) } // Состояние для отслеживания загрузки данных
+
+    val filtersState by mainViewModel.selectedFilters.collectAsState()
 
     val commandHandler = CommandHandler(mainViewModel)
     val valuesPickerState = rememberPickerState()
@@ -155,89 +160,92 @@ fun MainScreen(
         )
     }
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Napier.i("MainScreen: ${uiState.isLoading}, ${uiState.isServerConnected}")
-        if ((uiState.isLoading)) {
-            LoadingScreen(
-                onCancelClick = {
-                    isManuallyDisconnected = true
-                    isReconnectAllowed = false
-                    mainViewModel.clearSavedQrCode()
-                    mainViewModel.clearSavedTableNumber()
-                    navController.navigate("home_screen") {
-                        popUpTo("home_screen") { inclusive = true }
-                    }
-                    mainViewModel.onDisconnected("")
+    if ((uiState.isLoading)) {
+        LoadingScreen(
+            onCancelClick = {
+                isManuallyDisconnected = true
+                isReconnectAllowed = false
+                mainViewModel.clearSavedQrCode()
+                mainViewModel.clearSavedTableNumber()
+                navController.navigate("home_screen") {
+                    popUpTo("home_screen") { inclusive = true }
                 }
-            )
-        } else {
-            when (uiState.serverData.type) {
-                Constants.TYPE_HOME -> {
-                    HomeTypeView(
+                mainViewModel.onDisconnected("")
+            }
+        )
+    } else {
+        when (uiState.serverData.type) {
+            Constants.TYPE_HOME -> {
+                HomeTypeView(
+                    uiState = uiState,
+                    commandHandler = commandHandler,
+                    filtersState = filtersState,
+                    paddingValues = paddingValues,
+                    navigateToFilter = {
+                        navController.navigate("main_screen/filter_screen")
+                    }
+                )
+            }
+            Constants.TYPE_CLUB -> {
+                if (savedTableValue != -1) {
+                    ClubTypeView(
                         uiState = uiState,
                         commandHandler = commandHandler,
-                    )
-                }
-                Constants.TYPE_CLUB -> {
-                    if (savedTableValue != -1) {
-                        ClubTypeView(
-                            uiState = uiState,
-                            commandHandler = commandHandler
-                        )
-                    } else {
-                        showTableDialog = true
+                        filtersState = filtersState,
+                        paddingValues = paddingValues
+                    ) {
+                        navController.navigate("main_screen/filter_screen")
                     }
+                } else {
+                    showTableDialog = true
                 }
             }
         }
+    }
 
-        if (showTableDialog && uiState.isServerConnected) {
-            Dialog(onDismissRequest = { showTableDialog = false }) {
-                Card() {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+    if (showTableDialog && uiState.isServerConnected) {
+        Dialog(onDismissRequest = { showTableDialog = false }) {
+            Card() {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(20.dp),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = stringResource(Res.string.indicateTableNumber),
-                                style = MaterialTheme.typography.titleLarge,
-                                maxLines = 1,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-
-                        Picker(
-                            state = valuesPickerState,
-                            items = (1..uiState.serverData.tables).map { it.toString() },
-                            visibleItemsCount = 5,
-                            modifier = Modifier.fillMaxWidth(0.5f),
-                            textModifier = Modifier.padding(8.dp),
-                            textStyle = TextStyle(fontSize = 32.sp),
-                            dividerColor = Color(0xFFE8E8E8)
+                        Text(
+                            text = stringResource(Res.string.indicateTableNumber),
+                            style = MaterialTheme.typography.titleLarge,
+                            maxLines = 1,
+                            fontWeight = FontWeight.Bold
                         )
+                    }
 
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Button(
-                            onClick = {
-                                val table = valuesPickerState.selectedItem.toIntOrNull() ?: -1
-                                mainViewModel.updateCurrentTable(table)
-                                mainViewModel.saveCurrentTable(table)
-                                showTableDialog = false
+                    Picker(
+                        state = valuesPickerState,
+                        items = (1..uiState.serverData.tables).map { it.toString() },
+                        visibleItemsCount = 5,
+                        modifier = Modifier.fillMaxWidth(0.5f),
+                        textModifier = Modifier.padding(8.dp),
+                        textStyle = TextStyle(fontSize = 32.sp),
+                        dividerColor = Color(0xFFE8E8E8)
+                    )
 
-                            },
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Text(text = stringResource(Res.string.accept))
-                        }
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Button(
+                        onClick = {
+                            val table = valuesPickerState.selectedItem.toIntOrNull() ?: -1
+                            mainViewModel.updateCurrentTable(table)
+                            mainViewModel.saveCurrentTable(table)
+                            showTableDialog = false
+
+                        },
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(text = stringResource(Res.string.accept))
                     }
                 }
             }
@@ -268,8 +276,17 @@ fun LoadingScreen(onCancelClick: () -> Unit) {
                 modifier = Modifier.padding(bottom = 32.dp)
             )
 
-            Button(onClick = onCancelClick) {
-                Text(text = stringResource(Res.string.cancel))
+            TextButton(
+                onClick = onCancelClick,
+                border = BorderStroke(1.dp, buttonDisconnectDialog),
+                modifier = Modifier
+                    .fillMaxWidth(fraction = 0.5f)
+                    .height(48.dp)
+            ) {
+                Text(
+                    text = stringResource(Res.string.cancel),
+                    style = MaterialTheme.typography.labelLarge.copy(color = LocalCustomColorsPalette.current.primaryText)
+                )
             }
         }
     }

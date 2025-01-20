@@ -3,7 +3,7 @@ package com.jetbrains.kmpapp.ui.screens.home
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -25,6 +26,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
+import com.jetbrains.kmpapp.ui.theme.buttonReconnectDialog
 import com.jetbrains.kmpapp.ui.theme.logoTint
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.app_name
@@ -39,7 +42,8 @@ import org.koin.compose.koinInject
 @Composable
 fun HomeScreen(
     navController: NavHostController,
-    homeViewModel: HomeViewModel = koinInject()
+    homeViewModel: HomeViewModel = koinInject(),
+    paddingValues: PaddingValues
 ) {
     val uiState = homeViewModel.homeUiState.collectAsState().value
     val savedQrCode = uiState.savedQrCode
@@ -85,27 +89,26 @@ fun HomeScreen(
                     )
 
                     Button(
-                        onClick = {
-                            navController.navigate("qr_code_screen")
-                        },
-                        modifier = Modifier.padding(top = 10.dp)
+                        onClick = { navController.navigate("qr_code_screen") },
+                        colors = ButtonDefaults.buttonColors(containerColor = buttonReconnectDialog),
+                        modifier = Modifier
+                            .fillMaxWidth(fraction = 0.5f)
+                            .height(48.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 8.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(Res.drawable.qr_code),
-                                contentDescription = "QR Code",
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Text(
-                                text = stringResource(Res.string.scan),
-                                style = MaterialTheme.typography.titleMedium,
-                                maxLines = 1,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(start = 5.dp)
-                            )
-                        }
+                        Icon(
+                            painter = painterResource(Res.drawable.qr_code),
+                            contentDescription = "QR Code",
+                            modifier = Modifier.size(24.dp),
+                            tint = LocalCustomColorsPalette.current.primaryText
+                        )
+                        Text(
+                            text = stringResource(Res.string.scan),
+                            style = MaterialTheme.typography.titleMedium
+                                .copy(color = LocalCustomColorsPalette.current.primaryText),
+                            maxLines = 1,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 5.dp)
+                        )
                     }
                 }
             }

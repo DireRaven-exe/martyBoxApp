@@ -1,15 +1,16 @@
 package com.jetbrains.kmpapp.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -21,20 +22,33 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.jetbrains.kmpapp.domain.models.Song
-import martyboxapp.composeapp.generated.resources.Res
-import martyboxapp.composeapp.generated.resources.pause
-import org.jetbrains.compose.resources.painterResource
+import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
 
 @Composable
-fun SongCard(song: Song, isPlaying: Boolean, onPlayClick: (Song) -> Unit, onAddClick: (Song) -> Unit) {
-    Card(
+fun SongCard(
+    song: Song,
+    isPlaying: Boolean,
+    isCurrentSong: Boolean,
+    onPlayClick: (Song) -> Unit,
+    onAddClick: (Song) -> Unit
+) {
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
-        shape = RoundedCornerShape(5.dp)
+            .padding(horizontal = 8.dp)
+            .clip(RoundedCornerShape(15.dp))
+            .background(Color.Transparent)
+            .border(
+                width = 2.dp,
+                color = if (isCurrentSong) LocalCustomColorsPalette.current.selectedIcon else Color.Transparent,
+                shape = RoundedCornerShape(15.dp)
+            )
+            .clickable { onPlayClick(song) }
     ) {
         Row(
             modifier = Modifier
@@ -45,28 +59,21 @@ fun SongCard(song: Song, isPlaying: Boolean, onPlayClick: (Song) -> Unit, onAddC
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = 16.dp)
             ) {
-                Text(text = song.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, fontWeight = FontWeight.Bold)
-                Text(text = song.artist, style = MaterialTheme.typography.titleSmall, maxLines = 1)
-            }
-
-            IconButton(
-                onClick = { onPlayClick(song) },
-                modifier = Modifier.align(Alignment.CenterVertically)
-            ) {
-                if (isPlaying) {
-                    Icon(
-                        painter = painterResource(Res.drawable.pause),
-                        contentDescription = "Pause",
-                        modifier = Modifier.size(24.dp)
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = "Play"
-                    )
-                }
+                Text(
+                    text = song.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isCurrentSong) LocalCustomColorsPalette.current.selectedIcon else LocalCustomColorsPalette.current.primaryText
+                )
+                Text(
+                    text = song.artist,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    color = LocalCustomColorsPalette.current.secondaryText
+                )
             }
 
             IconButton(
@@ -80,13 +87,19 @@ fun SongCard(song: Song, isPlaying: Boolean, onPlayClick: (Song) -> Unit, onAddC
 }
 
 @Composable
-fun SongCard(song: Song, onAddClick: (Song) -> Unit) {
+fun SongCard(song: Song, onAddClick: (Song) -> Unit, isCurrentSong: Boolean) {
     var showDialog by rememberSaveable { mutableStateOf(false) }
-    Card(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
-        shape = RoundedCornerShape(5.dp)
+            .padding(horizontal = 8.dp)
+            .clip(RoundedCornerShape(15.dp))
+            .background(Color.Transparent)
+            .border(
+                width = 2.dp,
+                color = if (isCurrentSong) LocalCustomColorsPalette.current.selectedIcon else Color.Transparent,
+                shape = RoundedCornerShape(15.dp)
+            )
     ) {
         Row(
             modifier = Modifier
@@ -97,10 +110,21 @@ fun SongCard(song: Song, onAddClick: (Song) -> Unit) {
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = 16.dp)
             ) {
-                Text(text = song.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, fontWeight = FontWeight.Bold)
-                Text(text = song.artist, style = MaterialTheme.typography.titleSmall, maxLines = 1)
+                Text(
+                    text = song.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isCurrentSong) LocalCustomColorsPalette.current.selectedIcon else LocalCustomColorsPalette.current.primaryText
+                )
+                Text(
+                    text = song.artist,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    color = LocalCustomColorsPalette.current.secondaryText
+                )
             }
 
             IconButton(

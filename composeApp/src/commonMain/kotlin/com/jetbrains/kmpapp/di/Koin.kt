@@ -3,7 +3,14 @@
 package com.jetbrains.kmpapp.di
 
 import com.jetbrains.kmpapp.data.datasources.AppPreferencesRepositoryImpl
+import com.jetbrains.kmpapp.data.datasources.FilterRepositoryImpl
+import com.jetbrains.kmpapp.data.datasources.OptionsRepositoryImpl
+import com.jetbrains.kmpapp.data.datasources.SongsRepositoryImpl
 import com.jetbrains.kmpapp.feature.datastore.AppPreferencesRepository
+import com.jetbrains.kmpapp.feature.datastore.FilterRepository
+import com.jetbrains.kmpapp.feature.datastore.OptionsRepository
+import com.jetbrains.kmpapp.feature.datastore.SongsRepository
+import com.jetbrains.kmpapp.ui.screens.filter.FilterViewModel
 import com.jetbrains.kmpapp.ui.screens.home.HomeViewModel
 import com.jetbrains.kmpapp.ui.screens.main.MainViewModel
 import com.jetbrains.kmpapp.ui.screens.qr.QrCodeViewModel
@@ -43,9 +50,14 @@ fun commonModule() = module {
         val settings = get<ObservableSettings>()
         AppPreferencesRepositoryImpl(observableSettings = settings)
     }
+    single<OptionsRepository> { OptionsRepositoryImpl() }
+    single<FilterRepository> { FilterRepositoryImpl() }
+    single<SongsRepository> { SongsRepositoryImpl() }
+
     factory { HomeViewModel(appPreferencesRepository = get()) }
-    factory { MainViewModel(appPreferencesRepository = get()) }
+    factory { MainViewModel(appPreferencesRepository = get(), filterRepository = get(), songsRepository = get()) }
     factory { QrCodeViewModel(appPreferencesRepository = get()) }
+    factory { FilterViewModel(optionsRepository = get(), filterRepository = get(), songsRepository = get()) }
 }
 
 //fun initKoin() {//enableNetworkLogs: Boolean = true, appDeclaration: KoinAppDeclaration = {}) =

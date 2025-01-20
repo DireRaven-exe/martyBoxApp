@@ -23,7 +23,9 @@ data class MainUiState(
     var savedQrCode: String = "",
     var isServerConnected: Boolean = true,
     var isLoading: Boolean = true,
-    val error: String? = null
+    val error: String? = null,
+    val artistSearchActive: Boolean = true,
+    val titleSearchActive: Boolean = true,
 )
 
 data class QrScanUiState(
@@ -37,4 +39,11 @@ data class HomeUiState(
     var isLoading: Boolean = true,
     var savedQrCode: String = "",
     val error: String? = null
+)
+
+data class FilterUiState(
+    val selectedFilters: Map<String, List<String>> = emptyMap(),
+    val artistSearchActive: Boolean = true,
+    val titleSearchActive: Boolean = true,
+    val isLoading: Boolean = true
 )

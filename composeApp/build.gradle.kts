@@ -89,7 +89,7 @@ kotlin {
             implementation(libs.navigation.compose)
             implementation(libs.gson)
 
-            // CameraX
+//            // CameraX
             implementation(libs.androidx.camera.camera2)
             implementation(libs.androidx.camera.lifecycle)
             implementation(libs.androidx.camera.core)
@@ -103,6 +103,8 @@ kotlin {
             implementation(libs.multiplatformSettings.noArg)
             implementation(libs.multiplatform.settings.coroutines)
             implementation(libs.urlencoder)
+
+            implementation("com.github.skydoves:flexible-bottomsheet-material3:0.1.5")
 
 
         }

@@ -27,6 +27,7 @@
     <string name="openSettings">Открыть настройки </string>
     <string name="moveBottomSheet">Тянуть</string>
     <string name="no_songs_found">Список песен пустой</string>
-    <string name="attempting_to_connect">Попытка подключения</string>
+    <string name="attempting_to_connect">Подключение к серверу</string>
     <string name="cancel">Отмена</string>
+    <string name="filters">Фильтры</string>
 </resources>

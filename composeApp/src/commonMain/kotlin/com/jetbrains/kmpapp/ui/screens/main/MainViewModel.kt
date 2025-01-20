@@ -9,6 +9,8 @@ import com.jetbrains.kmpapp.data.dto.models.toSongs
 import com.jetbrains.kmpapp.data.sockets.KtorWebsocketClient
 import com.jetbrains.kmpapp.domain.models.Song
 import com.jetbrains.kmpapp.feature.datastore.AppPreferencesRepository
+import com.jetbrains.kmpapp.feature.datastore.FilterRepository
+import com.jetbrains.kmpapp.feature.datastore.SongsRepository
 import com.jetbrains.kmpapp.feature.messages.States
 import com.jetbrains.kmpapp.utils.MainUiState
 import io.github.aakira.napier.Napier
@@ -18,6 +20,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -25,23 +29,74 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 
 class MainViewModel(
-    private val appPreferencesRepository: AppPreferencesRepository
+    private val appPreferencesRepository: AppPreferencesRepository,
+    private val filterRepository: FilterRepository,
+    private val songsRepository: SongsRepository
 ) : ViewModel(), KtorWebsocketClient.WebsocketEvents {
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    private val _mainUiState = MutableStateFlow(MainUiState())
-    val mainUiState = _mainUiState.asStateFlow()
+    private val _uiState = MutableStateFlow(MainUiState())
+    val mainUiState = _uiState.asStateFlow()
 
     private var webSocketClient: KtorWebsocketClient? = null
 
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, exception ->
-        _mainUiState.update { it.copy(isLoading = false, error = exception.message) }
+        _uiState.update { it.copy(isLoading = false, error = exception.message) }
     }
+
+    private val _selectedFilters = MutableStateFlow<Map<String, List<String>>>(emptyMap())
+    val selectedFilters = _selectedFilters.asStateFlow()
 
     init {
         getQrCode()
         getCurrentTable()
+        filterRepository.getFilters().onEach { filters ->
+            _selectedFilters.value = filters
+            updateFilteredSongs()
+        }.launchIn(viewModelScope)
+        updateSearchByArtist()
+        updateSearchByTitle()
+    }
+
+    // Функция фильтрации песен
+    private fun updateFilteredSongs() {
+        _uiState.update {state ->
+            state.copy(
+                songs = state.songs.filter { song ->
+                    _selectedFilters.value.all { (filterKey, filterValues) ->
+                        when (filterKey) {
+                            "artist" -> filterValues.any { song.artist.contains(it, ignoreCase = true) }
+                            else -> true
+                        }
+                    }
+                }
+            )
+        }
+    }
+
+    private fun updateSearchByArtist() {
+        filterRepository.getSearchByArtist().onEach { artistSearchActive ->
+            _uiState.update { state ->
+                state.copy(artistSearchActive = artistSearchActive)
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    private fun updateSearchByTitle() {
+        filterRepository.getSearchByTitle().onEach { titleSearchActive ->
+            _uiState.update { state ->
+                state.copy(titleSearchActive = titleSearchActive)
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    fun setArtistSearchActive(artistSearchActive: Boolean) {
+        filterRepository.setSearchByArtist(artistSearchActive)
+    }
+
+    fun setTitleSearchActive(titleSearchActive: Boolean) {
+        filterRepository.setSearchByTitle(titleSearchActive)
     }
 
     fun clearSavedQrCode() {
@@ -58,7 +113,7 @@ class MainViewModel(
     fun getQrCode() = viewModelScope.launch(coroutineExceptionHandler) {
         appPreferencesRepository.getQrCode().collect { qrCode ->
             qrCode?.let {
-                _mainUiState.update { it.copy(savedQrCode = qrCode) }
+                _uiState.update { it.copy(savedQrCode = qrCode) }
             }
         }
     }
@@ -66,7 +121,7 @@ class MainViewModel(
     fun getCurrentTable() = viewModelScope.launch(coroutineExceptionHandler) {
         appPreferencesRepository.getTableNumber().collect { table ->
             table?.let {
-                _mainUiState.update { it.copy(currentTable = table) }
+                _uiState.update { it.copy(currentTable = table) }
             }
         }
     }
@@ -77,13 +132,13 @@ class MainViewModel(
         }
 
     fun updateCurrentTable(tableNumber: Int) {
-        _mainUiState.update { currentState ->
+        _uiState.update { currentState ->
             currentState.copy(currentTable = tableNumber)
         }
     }
 
     private fun updateServerConnectionStatus(isServerConnected: Boolean) {
-        _mainUiState.update { it.copy(isServerConnected = isServerConnected) }
+        _uiState.update { it.copy(isServerConnected = isServerConnected) }
     }
 
     fun connectToWebSocket(url: String) {
@@ -131,7 +186,7 @@ class MainViewModel(
 
             jsonObject.keys.forEach { key ->
                 val value = jsonObject[key]
-                val processed = States.getMessage(key).process(value?.toString() ?: "", _mainUiState)
+                val processed = States.getMessage(key).process(value?.toString() ?: "", _uiState)
                 Napier.d(tag = "WebSocket", message = "Processed: $key: $processed")
                 isStateMessage = isStateMessage && processed
                 if (processed) dataProcessed = true
@@ -143,10 +198,11 @@ class MainViewModel(
                     Napier.d(tag = "WebSocket", message = "Response: $responseData")
                     responseData?.let {
                         dataProcessed = true
-                        _mainUiState.value = _mainUiState.value.copy(
+                        _uiState.value = _uiState.value.copy(
                             songs = it.toSongs(),
                             serverData = it.toServerData()
                         )
+                        songsRepository.setSongs(it.toSongs())
                     } ?: Napier.e(tag = "WebSocket", message = "Error: failed to parse full server state")
                 } else {
                     Napier.w(tag = "WebSocket", message = "Received non-ResponseDto message, ignoring: $jsonString")
@@ -174,48 +230,48 @@ class MainViewModel(
     }
 
     fun updateCurrentSong(song: Song?) {
-        _mainUiState.update { currentState ->
+        _uiState.update { currentState ->
             currentState.copy(currentSong = song)
         }
     }
 
     fun updateTempo(tempo: Float) {
-        _mainUiState.update { currentState ->
+        _uiState.update { currentState ->
             currentState.copy(tempo = tempo)
         }
     }
 
     fun updatePitch(pitch: Int) {
-        _mainUiState.update { currentState ->
+        _uiState.update { currentState ->
             currentState.copy(pitch = pitch)
         }
     }
 
     fun updateAutoFullScreen(autoFullScreen: Boolean) {
-        _mainUiState.update { currentState ->
+        _uiState.update { currentState ->
             currentState.copy(autoFullScreen = autoFullScreen)
         }
     }
 
     fun updateAdaptatingTempo(adaptatingTempo: Boolean) {
-        _mainUiState.update { currentState ->
+        _uiState.update { currentState ->
             currentState.copy(adaptatingTempo = adaptatingTempo)
         }
     }
     fun updateDefaultVideoUse(defaultVideoUse: Boolean) {
-        _mainUiState.update { currentState ->
+        _uiState.update { currentState ->
             currentState.copy(defaultVideoUse = defaultVideoUse)
         }
     }
 
     fun updateSingingAssessment(singingAssessment: Boolean) {
-        _mainUiState.update { currentState ->
+        _uiState.update { currentState ->
             currentState.copy(singingAssessment = singingAssessment)
         }
     }
 
     fun updateSoundInPause(soundInPause: Boolean) {
-        _mainUiState.update { currentState ->
+        _uiState.update { currentState ->
             currentState.copy(soundInPause = soundInPause)
         }
     }
@@ -228,13 +284,13 @@ class MainViewModel(
     }
 
     fun updateVolume(newVolume: Float) {
-        _mainUiState.update { currentState ->
+        _uiState.update { currentState ->
             currentState.copy(volume = newVolume)
         }
     }
 
     fun updateIsLoading(isLoading: Boolean) {
-        _mainUiState.update { currentState ->
+        _uiState.update { currentState ->
             currentState.copy(isLoading = isLoading)
         }
     }
