@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -92,7 +93,7 @@ fun HomeScreen(
                         onClick = { navController.navigate("qr_code_screen") },
                         colors = ButtonDefaults.buttonColors(containerColor = buttonReconnectDialog),
                         modifier = Modifier
-                            .fillMaxWidth(fraction = 0.5f)
+                            .wrapContentWidth()
                             .height(48.dp)
                     ) {
                         Icon(
@@ -103,7 +104,7 @@ fun HomeScreen(
                         )
                         Text(
                             text = stringResource(Res.string.scan),
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.headlineMedium
                                 .copy(color = LocalCustomColorsPalette.current.primaryText),
                             maxLines = 1,
                             fontWeight = FontWeight.Bold,
@@ -114,8 +115,4 @@ fun HomeScreen(
             }
         }
     }
-
-//    BackHandler {
-//        exitProcess(0)
-//    }
 }

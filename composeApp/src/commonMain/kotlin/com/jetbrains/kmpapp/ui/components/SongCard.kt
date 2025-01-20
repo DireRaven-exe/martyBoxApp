@@ -2,15 +2,16 @@ package com.jetbrains.kmpapp.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +29,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.jetbrains.kmpapp.domain.models.Song
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
+import martyboxapp.composeapp.generated.resources.Res
+import martyboxapp.composeapp.generated.resources.pause
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun SongCard(
@@ -48,7 +52,6 @@ fun SongCard(
                 color = if (isCurrentSong) LocalCustomColorsPalette.current.selectedIcon else Color.Transparent,
                 shape = RoundedCornerShape(15.dp)
             )
-            .clickable { onPlayClick(song) }
     ) {
         Row(
             modifier = Modifier
@@ -74,6 +77,26 @@ fun SongCard(
                     maxLines = 1,
                     color = LocalCustomColorsPalette.current.secondaryText
                 )
+            }
+
+            IconButton(
+                onClick = { onPlayClick(song) },
+                modifier = Modifier.align(Alignment.CenterVertically)
+            ) {
+                if (isPlaying) {
+                    Icon(
+                        painter = painterResource(Res.drawable.pause),
+                        contentDescription = "Pause",
+                        modifier = Modifier.size(26.dp)
+                    )
+
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = "Play",
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
             }
 
             IconButton(
