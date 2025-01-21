@@ -1,49 +1,47 @@
 package com.jetbrains.kmpapp.utils
 
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.jetbrains.kmpapp.domain.models.ServerData
 import com.jetbrains.kmpapp.domain.models.Song
 
+@Stable
 data class MainUiState(
-    val songs: List<Song> = emptyList(),
+    val songs: SnapshotStateList<Song> = SnapshotStateList(),
     val serverData: ServerData = ServerData("", 0),
-    var searchQuery: String = "",
-    var searchBarActive: Boolean = false,
-    var currentSong: Song? = null,
-    var isPlaying: Boolean = false,
-    var tempo: Float = 0f,
-    var pitch: Int = 0,
-    var volume: Float = 0.5f,
-    var autoFullScreen: Boolean = false,
-    var adaptatingTempo: Boolean = false,
-    var defaultVideoUse: Boolean = false,
-    var singingAssessment: Boolean = false,
-    var soundInPause: Boolean = false,
-    var hasPlus: Boolean = false,
-    var currentTable: Int = -1,
-    var savedQrCode: String = "",
-    var isServerConnected: Boolean = true,
-    var isLoading: Boolean = true,
+    val searchQuery: String = "",
+    val searchBarActive: Boolean = false,
+    val currentSong: Song? = null,
+    val isPlaying: Boolean = false,
+    val tempo: Float = 0f,
+    val pitch: Int = 0,
+    val volume: Float = 0.5f,
+    val autoFullScreen: Boolean = false,
+    val adaptatingTempo: Boolean = false,
+    val defaultVideoUse: Boolean = false,
+    val singingAssessment: Boolean = false,
+    val soundInPause: Boolean = false,
+    val hasPlus: Boolean = false,
+    val currentTable: Int = -1,
+    val savedQrCode: String = "",
+    val isServerConnected: Boolean = true,
+    val isLoading: Boolean = true,
     val error: String? = null,
     val artistSearchActive: Boolean = true,
     val titleSearchActive: Boolean = true,
 )
 
+@Stable
 data class QrScanUiState(
     val isLoading: Boolean = false,
     val detectedQR: String = "",
-    var qrCodeProcessed: Boolean = false,
+    val qrCodeProcessed: Boolean = false,
     val error: String? = null
 )
 
+@Stable
 data class HomeUiState(
-    var isLoading: Boolean = true,
-    var savedQrCode: String = "",
+    val isLoading: Boolean = true,
+    val savedQrCode: String = "",
     val error: String? = null
-)
-
-data class FilterUiState(
-    val selectedFilters: Map<String, List<String>> = emptyMap(),
-    val artistSearchActive: Boolean = true,
-    val titleSearchActive: Boolean = true,
-    val isLoading: Boolean = true
 )

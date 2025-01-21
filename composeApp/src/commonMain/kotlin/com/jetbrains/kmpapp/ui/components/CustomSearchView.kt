@@ -46,7 +46,7 @@ fun CustomSearchView(
     val isKeyboardVisible = remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val focusRequester = remember { FocusRequester() }
+    val focusRequester = FocusRequester()//remember { FocusRequester() }
 
     Box(
         modifier = modifier

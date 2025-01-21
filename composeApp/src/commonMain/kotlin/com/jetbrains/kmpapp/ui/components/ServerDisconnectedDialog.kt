@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -45,7 +46,9 @@ fun ServerDisconnectedDialog(onDisconnect: () -> Unit, onReconnect: () -> Unit) 
             contentColor = MaterialTheme.colorScheme.onSurface
         ) {
             Column(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier
+                    .padding(16.dp)
+                    .wrapContentWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Image(
@@ -56,9 +59,10 @@ fun ServerDisconnectedDialog(onDisconnect: () -> Unit, onReconnect: () -> Unit) 
                 )
                 Text(
                     text = stringResource(Res.string.noConnectionToServer),
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    maxLines = 1
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -84,11 +88,13 @@ fun ServerDisconnectedDialog(onDisconnect: () -> Unit, onReconnect: () -> Unit) 
                         colors = ButtonDefaults.buttonColors(containerColor = buttonReconnectDialog),
                         modifier = Modifier
                             .weight(1f)
+                            .wrapContentWidth()
                             .height(48.dp)
                     ) {
                         Text(
                             text = stringResource(Res.string.reconnect),
-                            style = MaterialTheme.typography.labelLarge.copy(color = Color.White)
+                            style = MaterialTheme.typography.labelLarge.copy(color = Color.White),
+                            maxLines = 1
                         )
                     }
                 }

@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -33,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
-import com.jetbrains.kmpapp.feature.backhandler.OnBackPressedHandler
 import com.jetbrains.kmpapp.feature.commands.CommandHandler
 import com.jetbrains.kmpapp.ui.components.ConfirmDisconnectionDialog
 import com.jetbrains.kmpapp.ui.components.Picker
@@ -43,6 +44,7 @@ import com.jetbrains.kmpapp.ui.screens.main.views.ClubTypeView
 import com.jetbrains.kmpapp.ui.screens.main.views.HomeTypeView
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
 import com.jetbrains.kmpapp.ui.theme.buttonDisconnectDialog
+import com.jetbrains.kmpapp.ui.theme.buttonReconnectDialog
 import com.jetbrains.kmpapp.utils.Constants
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.accept
@@ -74,7 +76,7 @@ fun MainScreen(
 
     // Сохраняем qrCode при первом получении
     LaunchedEffect(savedQrCode) {
-        savedQrCode?.let {
+        savedQrCode.let {
             if (isReconnectAllowed) {
                 mainViewModel.connectToWebSocket(it)
             }
@@ -88,7 +90,7 @@ fun MainScreen(
     }
 
     LaunchedEffect(savedTableValue) {
-        mainViewModel.updateCurrentTable(savedTableValue ?: -1)
+        mainViewModel.updateCurrentTable(savedTableValue)
         if (savedTableValue == -1 && uiState.isServerConnected) {
             showTableDialog = true
         }
@@ -116,31 +118,6 @@ fun MainScreen(
 
     }
 
-    OnBackPressedHandler(
-        isServerConnected = uiState.isServerConnected,
-        isLoading = uiState.isLoading,
-        onBackFromLoading = {
-            // Возврат на главный экран при загрузке
-            mainViewModel.clearSavedQrCode()
-            mainViewModel.clearSavedTableNumber()
-            navController.navigate("home_screen") {
-                popUpTo("home_screen") { inclusive = true }
-            }
-        },
-        onBackFromServerConnected = {
-            showConfirmDisconnectionDialog = true
-        },
-        onBackDefault = {
-            // Обычное поведение кнопки назад
-            mainViewModel.clearSavedQrCode()
-            mainViewModel.clearSavedTableNumber()
-            navController.navigate("home_screen") {
-                popUpTo("home_screen") { inclusive = true }
-            }
-            mainViewModel.onDisconnected("the back button was pressed")
-        }
-    )
-
     if (showConfirmDisconnectionDialog) {
         ConfirmDisconnectionDialog(
             onConfirm = {
@@ -160,7 +137,7 @@ fun MainScreen(
         )
     }
 
-    if ((uiState.isLoading)) {
+    if (uiState.isLoading) {
         LoadingScreen(
             onCancelClick = {
                 isManuallyDisconnected = true
@@ -179,11 +156,7 @@ fun MainScreen(
                 HomeTypeView(
                     uiState = uiState,
                     commandHandler = commandHandler,
-                    filtersState = filtersState,
                     paddingValues = paddingValues,
-                    navigateToFilter = {
-                        navController.navigate("main_screen/filter_screen")
-                    }
                 )
             }
             Constants.TYPE_CLUB -> {
@@ -193,9 +166,7 @@ fun MainScreen(
                         commandHandler = commandHandler,
                         filtersState = filtersState,
                         paddingValues = paddingValues
-                    ) {
-                        navController.navigate("main_screen/filter_screen")
-                    }
+                    )
                 } else {
                     showTableDialog = true
                 }
@@ -205,7 +176,7 @@ fun MainScreen(
 
     if (showTableDialog && uiState.isServerConnected) {
         Dialog(onDismissRequest = { showTableDialog = false }) {
-            Card() {
+            Card {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
@@ -243,9 +214,19 @@ fun MainScreen(
                             showTableDialog = false
 
                         },
-                        modifier = Modifier.padding(16.dp)
+                        colors = ButtonDefaults.buttonColors(containerColor = buttonReconnectDialog),
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .wrapContentWidth()
+                            .weight(1f)
+                            .height(48.dp)
                     ) {
-                        Text(text = stringResource(Res.string.accept))
+                        Text(
+                            text = stringResource(Res.string.accept),
+                            style = MaterialTheme.typography.labelLarge.copy(color = Color.White),
+                            maxLines = 1
+
+                        )
                     }
                 }
             }

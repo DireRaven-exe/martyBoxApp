@@ -7,20 +7,18 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,9 +37,6 @@ import com.jetbrains.kmpapp.ui.components.CustomSearchView
 import com.jetbrains.kmpapp.ui.components.SongCard
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
 import com.jetbrains.kmpapp.utils.MainUiState
-import martyboxapp.composeapp.generated.resources.Res
-import martyboxapp.composeapp.generated.resources.filter_icon
-import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,15 +45,12 @@ fun ClubTypeView(
     commandHandler: CommandHandler,
     filtersState: Map<String, List<String>>,
     paddingValues: PaddingValues,
-    navigateToFilter: () -> Unit
 ) {
     var searchQuery by rememberSaveable { mutableStateOf(uiState.searchQuery) }
-    var expanded by rememberSaveable { mutableStateOf(uiState.searchBarActive) }
-
-    val groupedSongs = uiState.songs.groupBy { it.tab }
+    val groupedSongs by remember { mutableStateOf(uiState.songs.groupBy { it.tab }) }
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 
-    val tabNames = groupedSongs.keys.toList()
+    val tabNames by remember { mutableStateOf( groupedSongs.keys.toList()) }
     val pagerState = rememberPagerState { tabNames.size }
 
     LaunchedEffect(selectedTabIndex) {
@@ -68,78 +60,40 @@ fun ClubTypeView(
         selectedTabIndex = pagerState.currentPage
     }
 
-    val filteredSongs = remember(searchQuery, uiState.songs, uiState.artistSearchActive, uiState.titleSearchActive) {
-        if (searchQuery.isBlank()) {
-            uiState.songs
-        } else {
-            uiState.songs.filter { song ->
-                val titleWords = song.title.split(" ").map { it.lowercase() }
-                val artistWords = song.artist.split(" ").map { it.lowercase() }
-                val queryWords = searchQuery.split(" ").map { it.lowercase() }
-
-                queryWords.all { queryWord ->
-                    when {
-                        uiState.artistSearchActive && uiState.titleSearchActive -> {
-                            titleWords.any { it.contains(queryWord) } || artistWords.any { it.contains(queryWord) }
-                        }
-                        uiState.artistSearchActive -> {
-                            artistWords.any { it.contains(queryWord) }
-                        }
-                        uiState.titleSearchActive -> {
-                            titleWords.any { it.contains(queryWord) }
-                        }
-                        else -> false // Если оба переключателя выключены (не должно быть такого, но на всякий случай).
-                    }
-                }
-            }
-        }
-    }
-
-    val finalFilteredSongs = remember(filteredSongs, filtersState) {
-        filteredSongs?.filter { song ->
-            filtersState.all { (key, values) ->
-                when (key) {
-                    "artist" -> values.any { song.artist.contains(it, ignoreCase = true) }
-                    else -> true
-                }
+    val filteredSongs = remember(searchQuery, uiState.songs) {
+        if (searchQuery.isBlank()) uiState.songs
+        else uiState.songs.filter { song ->
+            val titleWords = song.title.split(" ").map { it.lowercase() }
+            val artistWords = song.artist.split(" ").map { it.lowercase() }
+            val queryWords = searchQuery.split(" ").map { it.lowercase() }
+            queryWords.all { queryWord ->
+                titleWords.any { it.contains(queryWord) } || artistWords.any { it.contains(queryWord) }
             }
         }
     }
 
     Scaffold(
-        modifier = Modifier.padding(paddingValues),
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 8.dp, end = 16.dp, top = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                CustomSearchView(
-                    search = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    onClearSearchQuery = { searchQuery = "" },
-                    modifier = Modifier
-                        .height(50.dp)
-                        .weight(0.9f)
-                        .padding(end = 16.dp)
-                )
-                IconButton(
-                    modifier = Modifier.align(Alignment.CenterVertically),
-                    onClick = {
-                        commandHandler.setTitleSearchActive(uiState.titleSearchActive)
-                        commandHandler.setArtistSearchActive(uiState.artistSearchActive)
-                        navigateToFilter()
+            TopAppBar(
+                title = {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 8.dp, end = 16.dp, top = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CustomSearchView(
+                            search = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            onClearSearchQuery = { searchQuery = "" },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight()
+                                .padding(end = 16.dp)
+                        )
                     }
-                ) {
-                    Icon(
-                        painter = painterResource(Res.drawable.filter_icon),
-                        modifier = Modifier.size(24.dp),
-                        tint = LocalCustomColorsPalette.current.primaryIcon,
-                        contentDescription = "Фильтры"
-                    )
-                }
-            }
+                },
+            )
         },
         containerColor = LocalCustomColorsPalette.current.primaryBackground,
     ) { contentPadding ->
@@ -151,14 +105,14 @@ fun ClubTypeView(
         ) {
 
             if (searchQuery.isNotBlank() || filtersState.isNotEmpty()) {
-                if (finalFilteredSongs!!.isEmpty()) {
+                if (filteredSongs.isEmpty()) {
                     EmptyListView(contentPadding)
                 } else
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(vertical = 8.dp),
                         content = {
-                            items(finalFilteredSongs!!) { song ->
+                            items(filteredSongs) { song ->
                                 SongCard(
                                     song = song,
                                     isCurrentSong = song == uiState.currentSong,

@@ -86,12 +86,10 @@ import kotlin.math.roundToInt
 fun HomeTypeView(
     commandHandler: CommandHandler,
     uiState: MainUiState,
-    navigateToFilter: () -> Unit,
-    filtersState: Map<String, List<String>>,
     paddingValues: PaddingValues
 ) {
     var searchQuery by remember  { mutableStateOf(uiState.searchQuery) }
-    val currentSong = uiState.currentSong
+    val currentSong by remember { mutableStateOf(uiState.currentSong) }
     val scaffoldState = rememberBottomSheetScaffoldState()
 
     val animatedSheetContainerColor by animateColorAsState(
@@ -100,12 +98,29 @@ fun HomeTypeView(
             SheetValue.PartiallyExpanded -> Color.Transparent
             else -> LocalCustomColorsPalette.current.containerSecondary
         },
-        animationSpec = tween(durationMillis = 150)
+        animationSpec = tween(durationMillis = 500)
     )
 
     val elementsAlpha = remember { Animatable(0f) }
     var currentSheetTarget by remember {
         mutableStateOf(scaffoldState.bottomSheetState.currentValue)
+    }
+
+    LaunchedEffect(Unit) {
+        // Pre-initialize animations and states
+        elementsAlpha.animateTo(
+            targetValue = 0.5f,
+            animationSpec = tween(durationMillis = 0)
+        )
+        elementsAlpha.animateTo(
+            targetValue = when (scaffoldState.bottomSheetState.targetValue) {
+                SheetValue.Expanded -> 1f
+                SheetValue.PartiallyExpanded -> 0f
+                else -> 0.5f
+            },
+            animationSpec = tween(durationMillis = 500)
+        )
+        currentSheetTarget = scaffoldState.bottomSheetState.targetValue
     }
 
     LaunchedEffect(scaffoldState.bottomSheetState.targetValue) {
@@ -115,7 +130,7 @@ fun HomeTypeView(
                 SheetValue.PartiallyExpanded -> 0f
                 else -> 0.5f
             },
-            animationSpec = tween(durationMillis = 150)
+            animationSpec = tween(durationMillis = 500)
         )
 
         currentSheetTarget = scaffoldState.bottomSheetState.targetValue
@@ -125,10 +140,10 @@ fun HomeTypeView(
         currentSheetTarget = scaffoldState.bottomSheetState.targetValue
     }
 
-    val groupedSongs = uiState.songs.groupBy { it.tab }
+    val groupedSongs by remember { mutableStateOf(uiState.songs.groupBy { it.tab }) }
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 
-    val tabNames = groupedSongs.keys.toList()
+    val tabNames by remember { mutableStateOf( groupedSongs.keys.toList()) }
     val pagerState = rememberPagerState { tabNames.size }
 
     LaunchedEffect(selectedTabIndex) {
@@ -417,7 +432,7 @@ fun HomeTypeView(
             contentAlignment = Alignment.TopCenter
         ) {
 
-            if (searchQuery.isNotBlank() || filtersState.isNotEmpty()) {
+            if (searchQuery.isNotBlank()) {
                 if (filteredSongs.isEmpty()) {
                     EmptyListView(contentPadding)
                 } else
@@ -429,8 +444,8 @@ fun HomeTypeView(
                             SongCard(
                                 song = song,
                                 isPlaying = song.id == uiState.currentSong?.id
-                                        && song.artist == uiState.currentSong?.artist
-                                        && song.title == uiState.currentSong?.title
+                                        && song.artist == uiState.currentSong.artist
+                                        && song.title == uiState.currentSong.title
                                         && uiState.isPlaying,
                                 isCurrentSong = song == uiState.currentSong,
                                 onPlayClick = { commandHandler.play(song) },
@@ -486,8 +501,8 @@ fun HomeTypeView(
                                             SongCard(
                                                 song = song,
                                                 isPlaying = song.id == uiState.currentSong?.id
-                                                        && song.artist == uiState.currentSong?.artist
-                                                        && song.title == uiState.currentSong?.title
+                                                        && song.artist == uiState.currentSong.artist
+                                                        && song.title == uiState.currentSong.title
                                                         && uiState.isPlaying,
                                                 onPlayClick = { commandHandler.play(song) },
                                                 onAddClick = { commandHandler.appendMedia(song) },

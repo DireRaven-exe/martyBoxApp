@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -16,12 +18,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import io.github.aakira.napier.Napier
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.openSettings
 import martyboxapp.composeapp.generated.resources.requestPermission
@@ -38,7 +39,6 @@ fun QrCodeScreen(
     navController: NavHostController,
     paddingValues: PaddingValues,
 ) {
-    val uiState by qrCodeViewModel.qrCodeUiState.collectAsState()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -48,7 +48,7 @@ fun QrCodeScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
                         )
                     }
@@ -59,23 +59,39 @@ fun QrCodeScreen(
         ScannerWithPermissions(
             modifier = Modifier.padding(0.dp),
             onScanned = {
-                navController.navigate("main_screen")
-                qrCodeViewModel.onQrCodeDetected(it)
+                try {
+                    navController.navigate("main_screen")
+                    qrCodeViewModel.onQrCodeDetected(it)
+                } catch (e: Exception) {
+                    // Обработка исключения
+                    Napier.e(tag = "QrCodeScreen", message = "Error handling scanned QR code", throwable = e)
+                    navController.popBackStack()
+                }
                 false // stop scanning
             },
-            types = listOf(CodeType.QR),
+            types = listOfNotNull(CodeType.QR),
             permissionDeniedContent = { state ->
-                Surface(modifier = Modifier.fillMaxSize()) {
+                Surface(modifier = Modifier
+                    .fillMaxSize()
+                    .wrapContentWidth()
+                ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                     ) {
                         Text(
                             modifier = Modifier.padding(6.dp),
-                            text =stringResource(Res.string.requestPermission)
+                            text =stringResource(Res.string.requestPermission),
+                            maxLines = 1
                         )
-                        Button(onClick = { state.goToSettings() }) {
-                            Text(stringResource(Res.string.openSettings))
+                        Button(
+                            onClick = { state.goToSettings() },
+                            modifier = Modifier.wrapContentSize()
+                        ) {
+                            Text(
+                                text = stringResource(Res.string.openSettings),
+                                maxLines = 1
+                            )
                         }
                     }
                 }

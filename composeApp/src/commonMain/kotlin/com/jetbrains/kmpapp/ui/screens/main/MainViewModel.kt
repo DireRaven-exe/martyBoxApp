@@ -1,5 +1,6 @@
 package com.jetbrains.kmpapp.ui.screens.main
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jetbrains.kmpapp.data.dto.models.Command
@@ -9,8 +10,6 @@ import com.jetbrains.kmpapp.data.dto.models.toSongs
 import com.jetbrains.kmpapp.data.sockets.KtorWebsocketClient
 import com.jetbrains.kmpapp.domain.models.Song
 import com.jetbrains.kmpapp.feature.datastore.AppPreferencesRepository
-import com.jetbrains.kmpapp.feature.datastore.FilterRepository
-import com.jetbrains.kmpapp.feature.datastore.SongsRepository
 import com.jetbrains.kmpapp.feature.messages.States
 import com.jetbrains.kmpapp.utils.MainUiState
 import io.github.aakira.napier.Napier
@@ -20,18 +19,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 
+@Immutable
 class MainViewModel(
     private val appPreferencesRepository: AppPreferencesRepository,
-    private val filterRepository: FilterRepository,
-    private val songsRepository: SongsRepository
 ) : ViewModel(), KtorWebsocketClient.WebsocketEvents {
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -51,52 +47,6 @@ class MainViewModel(
     init {
         getQrCode()
         getCurrentTable()
-        filterRepository.getFilters().onEach { filters ->
-            _selectedFilters.value = filters
-            updateFilteredSongs()
-        }.launchIn(viewModelScope)
-        updateSearchByArtist()
-        updateSearchByTitle()
-    }
-
-    // Функция фильтрации песен
-    private fun updateFilteredSongs() {
-        _uiState.update {state ->
-            state.copy(
-                songs = state.songs.filter { song ->
-                    _selectedFilters.value.all { (filterKey, filterValues) ->
-                        when (filterKey) {
-                            "artist" -> filterValues.any { song.artist.contains(it, ignoreCase = true) }
-                            else -> true
-                        }
-                    }
-                }
-            )
-        }
-    }
-
-    private fun updateSearchByArtist() {
-        filterRepository.getSearchByArtist().onEach { artistSearchActive ->
-            _uiState.update { state ->
-                state.copy(artistSearchActive = artistSearchActive)
-            }
-        }.launchIn(viewModelScope)
-    }
-
-    private fun updateSearchByTitle() {
-        filterRepository.getSearchByTitle().onEach { titleSearchActive ->
-            _uiState.update { state ->
-                state.copy(titleSearchActive = titleSearchActive)
-            }
-        }.launchIn(viewModelScope)
-    }
-
-    fun setArtistSearchActive(artistSearchActive: Boolean) {
-        filterRepository.setSearchByArtist(artistSearchActive)
-    }
-
-    fun setTitleSearchActive(titleSearchActive: Boolean) {
-        filterRepository.setSearchByTitle(titleSearchActive)
     }
 
     fun clearSavedQrCode() {
@@ -202,7 +152,6 @@ class MainViewModel(
                             songs = it.toSongs(),
                             serverData = it.toServerData()
                         )
-                        songsRepository.setSongs(it.toSongs())
                     } ?: Napier.e(tag = "WebSocket", message = "Error: failed to parse full server state")
                 } else {
                     Napier.w(tag = "WebSocket", message = "Received non-ResponseDto message, ignoring: $jsonString")

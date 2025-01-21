@@ -158,12 +158,4 @@ class CommandHandler(private val viewModel: MainViewModel) {
     fun updateSoundInPause(soundInPause: Boolean) {
         viewModel.updateSoundInPause(soundInPause)
     }
-
-    fun setArtistSearchActive(artistSearchActive: Boolean) {
-        viewModel.setArtistSearchActive(artistSearchActive)
-    }
-
-    fun setTitleSearchActive(titleSearchActive: Boolean) {
-        viewModel.setTitleSearchActive(titleSearchActive)
-    }
 }

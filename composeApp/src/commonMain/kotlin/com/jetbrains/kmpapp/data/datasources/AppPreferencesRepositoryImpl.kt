@@ -2,6 +2,7 @@
 
 package com.jetbrains.kmpapp.data.datasources
 
+import androidx.compose.runtime.Stable
 import com.jetbrains.kmpapp.feature.datastore.AppPreferencesRepository
 import com.jetbrains.kmpapp.utils.Constants.KEY_QRCODE
 import com.jetbrains.kmpapp.utils.Constants.KEY_TABLE_NUMBER
@@ -11,6 +12,7 @@ import com.russhwolf.settings.coroutines.getIntOrNullFlow
 import com.russhwolf.settings.coroutines.getStringOrNullFlow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+
 
 class AppPreferencesRepositoryImpl(
     private val observableSettings: ObservableSettings

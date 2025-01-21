@@ -9,7 +9,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.jetbrains.kmpapp.ui.screens.filter.FilterScreen
 import com.jetbrains.kmpapp.ui.screens.home.HomeScreen
 import com.jetbrains.kmpapp.ui.screens.main.MainScreen
 import com.jetbrains.kmpapp.ui.screens.qr.QrCodeScreen
@@ -30,12 +29,6 @@ fun MainApplication() {
                     }
                     composable("main_screen") {
                         MainScreen(navController = navController, paddingValues = paddingValues)
-                    }
-                    composable("main_screen/filter_screen") {
-                        FilterScreen(
-                            navigator = navController,
-                            paddingValues = paddingValues
-                        )
                     }
                 }
             }
