@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.jetbrains.kmpapp.ui.screens.main.views
 
 import androidx.compose.animation.animateColorAsState
@@ -81,15 +79,15 @@ import org.jetbrains.compose.resources.stringResource
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTypeView(
     commandHandler: CommandHandler,
     uiState: MainUiState,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    navigationToQueue: () -> Unit
 ) {
     var searchQuery by remember  { mutableStateOf(uiState.searchQuery) }
-    val currentSong by remember { mutableStateOf(uiState.currentSong) }
     val scaffoldState = rememberBottomSheetScaffoldState()
 
     val animatedSheetContainerColor by animateColorAsState(
@@ -234,7 +232,7 @@ fun HomeTypeView(
                                 .padding(horizontal = 16.dp, vertical = 16.dp)
                         ) {
                             Text(
-                                text = currentSong?.title ?: stringResource(Res.string.title),
+                                text = uiState.currentSong?.title ?: stringResource(Res.string.title),
                                 style = MaterialTheme.typography.titleMedium,
                                 maxLines = 1,
                                 fontWeight = FontWeight.Bold,
@@ -242,7 +240,7 @@ fun HomeTypeView(
                             )
 
                             Text(
-                                text = currentSong?.artist ?: stringResource(Res.string.artist),
+                                text = uiState.currentSong?.artist ?: stringResource(Res.string.artist),
                                 style = MaterialTheme.typography.bodyMedium,
                                 maxLines = 1,
                                 color = LocalCustomColorsPalette.current.secondaryText
@@ -314,7 +312,7 @@ fun HomeTypeView(
                         }
                         IconButton(
                             onClick = {
-
+                                navigationToQueue()
                             }
                         ) {
                             Icon(

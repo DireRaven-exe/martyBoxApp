@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.jetbrains.kmpapp.ui.navigation.NavigationItem
 import io.github.aakira.napier.Napier
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.openSettings
@@ -60,7 +61,7 @@ fun QrCodeScreen(
             modifier = Modifier.padding(0.dp),
             onScanned = {
                 try {
-                    navController.navigate("main_screen")
+                    navController.navigate(NavigationItem.Main.route)
                     qrCodeViewModel.onQrCodeDetected(it)
                 } catch (e: Exception) {
                     // Обработка исключения

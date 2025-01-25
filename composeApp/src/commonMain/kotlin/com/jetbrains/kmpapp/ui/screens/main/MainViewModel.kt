@@ -8,8 +8,10 @@ import com.jetbrains.kmpapp.data.dto.models.ResponseDto
 import com.jetbrains.kmpapp.data.dto.models.toServerData
 import com.jetbrains.kmpapp.data.dto.models.toSongs
 import com.jetbrains.kmpapp.data.sockets.KtorWebsocketClient
+import com.jetbrains.kmpapp.di.AppStateProvider
 import com.jetbrains.kmpapp.domain.models.Song
 import com.jetbrains.kmpapp.feature.datastore.AppPreferencesRepository
+import com.jetbrains.kmpapp.feature.datastore.QueueRepository
 import com.jetbrains.kmpapp.feature.messages.States
 import com.jetbrains.kmpapp.utils.MainUiState
 import io.github.aakira.napier.Napier
@@ -28,6 +30,8 @@ import kotlinx.serialization.json.jsonObject
 @Immutable
 class MainViewModel(
     private val appPreferencesRepository: AppPreferencesRepository,
+    private val webSocketClient: KtorWebsocketClient,
+    private val queueRepository: QueueRepository
 ) : ViewModel(), KtorWebsocketClient.WebsocketEvents {
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -35,7 +39,7 @@ class MainViewModel(
     private val _uiState = MutableStateFlow(MainUiState())
     val mainUiState = _uiState.asStateFlow()
 
-    private var webSocketClient: KtorWebsocketClient? = null
+    //private var webSocketClient: KtorWebsocketClient? = null
 
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, exception ->
         _uiState.update { it.copy(isLoading = false, error = exception.message) }
@@ -92,16 +96,19 @@ class MainViewModel(
     }
 
     fun connectToWebSocket(url: String) {
-        webSocketClient = KtorWebsocketClient(
-            url = url,
-            listener = this
-        )
+        webSocketClient.updateCallbacks(this)
+        webSocketClient.updateKtorWebsocketClient(url, AppStateProvider())
+//        webSocketClient = KtorWebsocketClient(
+//            url = url,
+//            listener = this,
+//            appStateProvider = AppStateProvider()
+//        )
         connect()
     }
 
     private fun connect() {
         viewModelScope.launch(Dispatchers.IO) {
-            webSocketClient?.connect()
+            webSocketClient.connect()
         }
     }
 
@@ -182,6 +189,9 @@ class MainViewModel(
         _uiState.update { currentState ->
             currentState.copy(currentSong = song)
         }
+//        viewModelScope.launch(coroutineExceptionHandler) {
+//            queueRepository.addSong(newSong = song!!)
+//        }
     }
 
     fun updateTempo(tempo: Float) {
@@ -242,5 +252,9 @@ class MainViewModel(
         _uiState.update { currentState ->
             currentState.copy(isLoading = isLoading)
         }
+    }
+
+    fun addSongToQueue(song: Song?) {
+        queueRepository.addSong(newSong = song!!)
     }
 }

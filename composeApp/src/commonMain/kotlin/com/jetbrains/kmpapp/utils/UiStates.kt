@@ -45,3 +45,12 @@ data class HomeUiState(
     val savedQrCode: String = "",
     val error: String? = null
 )
+
+@Stable
+data class QueueUiState(
+    val isLoading: Boolean = true,
+    val songs: SnapshotStateList<Song> = SnapshotStateList(),
+    val currentSong: Song? = null,
+    val isPlaying: Boolean = false,
+    val error: String? = null
+)

@@ -10,26 +10,27 @@ class CommandHandler(private val viewModel: MainViewModel) {
             value = "{\"tab\": \"${song.tab}\", \"id\": ${song.id}}",
             table = song.id
         )
+        viewModel.addSongToQueue(song)
     }
 
     fun play(song: Song) {
-        if (viewModel.mainUiState.value.currentSong == song) {
-            viewModel.updateCurrentSong(null)
-        } else {
+//        if (viewModel.mainUiState.value.currentSong == song) {
+//            viewModel.updateCurrentSong(null)
+//        } else {
             viewModel.updateCurrentSong(song)
             viewModel.sendCommandToServer(
                 type = 2,
                 value = "{\"tab\": \"${song.tab}\", \"id\": ${song.id}}",
                 table = 0
             )
-        }
+        //}
     }
 
-    fun requestMedia(song: Song) {
+    fun requestMedia(song: Song, table: Int) {
         viewModel.sendCommandToServer(
             type = 10,
             value = "{\"tab\": \"${song.tab}\", \"id\": ${song.id}}",
-            viewModel.mainUiState.value.currentTable
+            table = table
         )
     }
 

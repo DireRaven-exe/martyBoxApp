@@ -100,7 +100,7 @@ fun CustomSearchView(
             singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .focusRequester(focusRequester)
+                .focusRequester(focusRequester) //проверить на ios
                 .clickable {
                     focusRequester.requestFocus()
                     keyboardController?.show()

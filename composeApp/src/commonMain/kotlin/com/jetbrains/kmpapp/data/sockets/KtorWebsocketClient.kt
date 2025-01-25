@@ -1,5 +1,6 @@
 package com.jetbrains.kmpapp.data.sockets
 
+import com.jetbrains.kmpapp.di.AppStateProvider
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
@@ -28,16 +29,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlin.time.Duration.Companion.milliseconds
 
-class KtorWebsocketClient(
-    private val url: String,
-    private val listener: WebsocketEvents,
-) {
+class KtorWebsocketClient {
+    private var _url: String = ""
+    private var listener: WebsocketEvents? = null
+    private var _appStateProvider: AppStateProvider? = null
+
     private val client = HttpClient {
         install(Logging) {
             level = LogLevel.ALL
         }
         install(WebSockets) {
-            pingInterval = 5_000.milliseconds
+            pingInterval = 10_000.milliseconds
         }
         install(HttpTimeout) {
             requestTimeoutMillis = 5_000
@@ -58,21 +60,40 @@ class KtorWebsocketClient(
         if (isStopped) return
 
         try {
-            Napier.d(tag = TAG, message = "Connecting to websocket at $url...")
+            Napier.d(tag = TAG, message = "Connecting to websocket at $_url...")
 
-            session = client.webSocketSession(url)
+            session = client.webSocketSession(_url)
 
             reconnectAttempts = 0
-            listener.onConnected()
+            listener?.onConnected()
 
-            Napier.i(tag = TAG, message = "Connected to websocket at $url")
+            Napier.i(tag = TAG, message = "Connected to websocket at $_url")
 
             scope.launch {
-                while (session?.isActive == true && !isStopped) {
-                    sendPing()
+                while (!isStopped) {
+                    if (_appStateProvider?.isAppInBackground() == true) {
+                        Napier.d(tag = TAG, message = "App is in background, stopping WebSocket connection...")
+                        session?.close()//stop()
+                    } else {
+                        if (session?.isActive == true) {
+                            sendPing()
+                        } else {
+                            connect()
+                        }
+                    }
                     delay(PING_INTERVAL)
                 }
             }
+
+//            scope.launch {
+//                while (session?.isActive == true && !isStopped) {
+//                    Napier.e(tag = TAG, message = appStateProvider.isAppInBackground().toString())
+//                    if (!appStateProvider.isAppInBackground()) { // Проверка состояния приложения
+//                        sendPing()
+//                    }
+//                    delay(PING_INTERVAL)
+//                }
+//            }
 
             session!!.incoming
                 .receiveAsFlow()
@@ -80,7 +101,7 @@ class KtorWebsocketClient(
                 .filterNotNull()
                 .collect { data ->
                     val message = data.readText()
-                    listener.onReceive(message)
+                    listener?.onReceive(message)
 
                     Napier.i(tag = TAG, message = "Received message: $message")
                 }
@@ -90,13 +111,13 @@ class KtorWebsocketClient(
                 reconnect()
             } else {
                 Napier.d(tag = TAG, message = "Max reconnect attempts exceeded. Reconnection stopped.")
-                listener.onDisconnected("Max reconnect attempts exceeded.")
+                listener?.onDisconnected("Max reconnect attempts exceeded.")
             }
         }
     }
 
     private fun reconnect() {
-        if (isStopped) {
+        if ((isStopped || _appStateProvider!!.isAppInBackground())) {
             Napier.d(tag = TAG, message = "Reconnection aborted: client is stopped.")
             return
         }
@@ -105,18 +126,26 @@ class KtorWebsocketClient(
 
         if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
             Napier.e(tag = TAG, message = "Max reconnect attempts exceeded. Server marked as disconnected.")
-            listener.onDisconnected("Max reconnect attempts exceeded.")
+            listener?.onDisconnected("Max reconnect attempts exceeded.")
             return
         }
 
-        Napier.d(tag = TAG, message = "Reconnecting to WebSocket in ${RECONNECT_DELAY}ms...")
+        val delayTime = (RECONNECT_DELAY * (reconnectAttempts + 1)).coerceAtMost(5_000L)
+
+        Napier.d(tag = TAG, message = "Reconnecting to WebSocket in $delayTime ms...")
 
         job = scope.launch {
-            delay(RECONNECT_DELAY)
+            delay(delayTime)
             if (isStopped) return@launch
 
             reconnectAttempts++
-            connect()
+            try {
+                connect()
+            } catch (e: Exception) {
+                // Catch any other connection issues (e.g., network, server down)
+                Napier.e(tag = TAG, message = "Reconnection failed: ${e.message}")
+                listener?.onDisconnected("Reconnection failed: ${e.message}")
+            }
         }
     }
 
@@ -153,6 +182,15 @@ class KtorWebsocketClient(
         }
     }
 
+    fun updateKtorWebsocketClient(url: String, appStateProvider: AppStateProvider) {
+        _url = url
+        _appStateProvider = appStateProvider
+    }
+
+    fun updateCallbacks(listener: WebsocketEvents) {
+        this.listener = listener
+    }
+
     interface WebsocketEvents {
         fun onReceive(data: String)
         fun onConnected()
@@ -161,7 +199,7 @@ class KtorWebsocketClient(
 
     companion object {
         private const val RECONNECT_DELAY = 3_000L
-        private const val PING_INTERVAL = 5_000L
+        private const val PING_INTERVAL = 10_000L
         private const val MAX_RECONNECT_ATTEMPTS = 2
         private const val TAG = "EVChargingWebSocketClient"
     }

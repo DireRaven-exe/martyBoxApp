@@ -1,5 +1,6 @@
 package com.jetbrains.kmpapp.ui.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,10 +42,11 @@ fun SongCard(
     isPlaying: Boolean,
     isCurrentSong: Boolean,
     onPlayClick: (Song) -> Unit,
-    onAddClick: (Song) -> Unit
+    onAddClick: (Song) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp)
             .clip(RoundedCornerShape(15.dp))
@@ -109,6 +113,99 @@ fun SongCard(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun SongCard(
+    song: Song,
+    isPlaying: Boolean,
+    isCurrentSong: Boolean,
+    onPlayClick: (Song) -> Unit,
+    onRemoveClick: (Song) -> Unit,
+    onEditPositionClick: () -> Unit,
+    onItemClicked: (Song) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp)
+            .clip(RoundedCornerShape(15.dp))
+            .background(Color.Transparent)
+            .border(
+                width = 2.dp,
+                color = if (isCurrentSong) LocalCustomColorsPalette.current.selectedIcon else Color.Transparent,
+                shape = RoundedCornerShape(15.dp)
+            )
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    text = song.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isCurrentSong) LocalCustomColorsPalette.current.selectedIcon else LocalCustomColorsPalette.current.primaryText
+                )
+                Text(
+                    text = song.artist,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    color = LocalCustomColorsPalette.current.secondaryText
+                )
+            }
+
+            IconButton(
+                onClick = { onPlayClick(song) },
+                modifier = Modifier.align(Alignment.CenterVertically)
+            ) {
+                if (isPlaying) {
+                    Icon(
+                        painter = painterResource(Res.drawable.pause),
+                        contentDescription = "Pause",
+                        modifier = Modifier.size(26.dp)
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = "Play",
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+            }
+
+            IconButton(
+                onClick = { onRemoveClick(song) },
+                modifier = Modifier.align(Alignment.CenterVertically)
+            ) {
+                Icon(Icons.Default.Close, contentDescription = "Remove")
+            }
+
+            IconButton(
+                onClick = { onItemClicked(song) },
+                modifier = Modifier
+//                    .combinedClickable(
+//                        onClick = { onItemClicked(song) },
+////                        onLongClick = {
+////                            onItemClicked(song)
+////                        //    onEditPositionClick()
+////                        }
+//                    )
+                    .align(Alignment.CenterVertically)
+            ) {
+                Icon(Icons.Default.Menu, contentDescription = "Move")
+            }
+        }
+    }
+}
 @Composable
 fun SongCard(song: Song, onAddClick: (Song) -> Unit, isCurrentSong: Boolean) {
     var showDialog by rememberSaveable { mutableStateOf(false) }

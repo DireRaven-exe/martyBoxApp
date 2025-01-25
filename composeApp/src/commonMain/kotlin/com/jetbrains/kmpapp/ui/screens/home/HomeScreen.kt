@@ -27,6 +27,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.jetbrains.kmpapp.ui.navigation.NavigationItem
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
 import com.jetbrains.kmpapp.ui.theme.buttonReconnectDialog
 import com.jetbrains.kmpapp.ui.theme.logoTint
@@ -52,7 +53,7 @@ fun HomeScreen(
     LaunchedEffect(savedQrCode) {
         savedQrCode?.let {
             if (it.isNotEmpty()) {
-                navController.navigate("main_screen")
+                navController.navigate(NavigationItem.Main.route)
             }
         }
     }
@@ -90,7 +91,7 @@ fun HomeScreen(
                     )
 
                     Button(
-                        onClick = { navController.navigate("qr_code_screen") },
+                        onClick = { navController.navigate(NavigationItem.QRCode.route) },
                         colors = ButtonDefaults.buttonColors(containerColor = buttonReconnectDialog),
                         modifier = Modifier
                             .wrapContentWidth()

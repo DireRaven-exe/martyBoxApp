@@ -50,6 +50,8 @@ fun ClubTypeView(
     val groupedSongs by remember { mutableStateOf(uiState.songs.groupBy { it.tab }) }
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 
+    val selectedTable by remember { mutableIntStateOf(uiState.currentTable) }
+
     val tabNames by remember { mutableStateOf( groupedSongs.keys.toList()) }
     val pagerState = rememberPagerState { tabNames.size }
 
@@ -117,7 +119,7 @@ fun ClubTypeView(
                                     song = song,
                                     isCurrentSong = song == uiState.currentSong,
                                     onAddClick = {
-                                        commandHandler.requestMedia(song)
+                                        commandHandler.requestMedia(song, selectedTable)
                                     }
                                 )
                             }
@@ -171,7 +173,7 @@ fun ClubTypeView(
                                                 song = song,
                                                 isCurrentSong = song == uiState.currentSong,
                                                 onAddClick = {
-                                                    commandHandler.requestMedia(song)
+                                                    commandHandler.requestMedia(song, selectedTable)
                                                 }
                                             )
                                         }

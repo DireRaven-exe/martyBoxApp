@@ -6,12 +6,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.jetbrains.kmpapp.ui.screens.home.HomeScreen
-import com.jetbrains.kmpapp.ui.screens.main.MainScreen
-import com.jetbrains.kmpapp.ui.screens.qr.QrCodeScreen
+import com.jetbrains.kmpapp.ui.navigation.Navigation
 import com.jetbrains.kmpapp.ui.theme.MartinBoxAppTheme
 
 @Composable
@@ -20,17 +16,7 @@ fun MainApplication() {
         val navController: NavHostController = rememberNavController()
         Scaffold() { paddingValues ->
             BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                NavHost(navController = navController, startDestination = "home_screen") {
-                    composable("qr_code_screen") {
-                        QrCodeScreen(navController = navController, paddingValues = paddingValues)
-                    }
-                    composable("home_screen") {
-                        HomeScreen(navController = navController, paddingValues = paddingValues)
-                    }
-                    composable("main_screen") {
-                        MainScreen(navController = navController, paddingValues = paddingValues)
-                    }
-                }
+                Navigation(navController = navController, paddingValues = paddingValues)
             }
         }
     }

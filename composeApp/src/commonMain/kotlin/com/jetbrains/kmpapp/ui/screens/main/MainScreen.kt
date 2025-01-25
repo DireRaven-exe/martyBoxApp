@@ -40,6 +40,7 @@ import com.jetbrains.kmpapp.ui.components.ConfirmDisconnectionDialog
 import com.jetbrains.kmpapp.ui.components.Picker
 import com.jetbrains.kmpapp.ui.components.ServerDisconnectedDialog
 import com.jetbrains.kmpapp.ui.components.rememberPickerState
+import com.jetbrains.kmpapp.ui.navigation.NavigationItem
 import com.jetbrains.kmpapp.ui.screens.main.views.ClubTypeView
 import com.jetbrains.kmpapp.ui.screens.main.views.HomeTypeView
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
@@ -67,7 +68,7 @@ fun MainScreen(
     var showDisconnectedDialog by rememberSaveable { mutableStateOf(false) }
     var showConfirmDisconnectionDialog = false
     var isManuallyDisconnected by rememberSaveable { mutableStateOf(false) }
-    var isReconnectAllowed = true
+    var isReconnectAllowed  by rememberSaveable { mutableStateOf(true) }
 
     val filtersState by mainViewModel.selectedFilters.collectAsState()
 
@@ -84,7 +85,7 @@ fun MainScreen(
     }
 
     LaunchedEffect(uiState.isServerConnected) {
-        if (!uiState.isServerConnected && navController.currentBackStackEntry?.destination?.route != "home_screen") {
+        if (!uiState.isServerConnected && navController.currentBackStackEntry?.destination?.route != NavigationItem.Home.route) {
             showDisconnectedDialog = true
         }
     }
@@ -103,8 +104,8 @@ fun MainScreen(
                 isReconnectAllowed = false
                 mainViewModel.clearSavedQrCode()
                 mainViewModel.clearSavedTableNumber()
-                navController.navigate("home_screen") {
-                    popUpTo("home_screen") { inclusive = true }
+                navController.navigate(NavigationItem.Home.route) {
+                    popUpTo(NavigationItem.Home.route) { inclusive = true }
                 }
                 mainViewModel.onDisconnected("Connection lost")
             },
@@ -126,8 +127,8 @@ fun MainScreen(
                 isReconnectAllowed = false
                 mainViewModel.clearSavedQrCode()
                 mainViewModel.clearSavedTableNumber()
-                navController.navigate("home_screen") {
-                    popUpTo("home_screen") { inclusive = true }
+                navController.navigate(NavigationItem.Home.route) {
+                    popUpTo(NavigationItem.Home.route) { inclusive = true }
                 }
                 mainViewModel.onDisconnected("User manually disconnected")
             },
@@ -144,8 +145,8 @@ fun MainScreen(
                 isReconnectAllowed = false
                 mainViewModel.clearSavedQrCode()
                 mainViewModel.clearSavedTableNumber()
-                navController.navigate("home_screen") {
-                    popUpTo("home_screen") { inclusive = true }
+                navController.navigate(NavigationItem.Home.route) {
+                    popUpTo(NavigationItem.Home.route) { inclusive = true }
                 }
                 mainViewModel.onDisconnected("")
             }
@@ -157,6 +158,7 @@ fun MainScreen(
                     uiState = uiState,
                     commandHandler = commandHandler,
                     paddingValues = paddingValues,
+                    navigationToQueue = { navController.navigate(NavigationItem.Queue.route) }
                 )
             }
             Constants.TYPE_CLUB -> {

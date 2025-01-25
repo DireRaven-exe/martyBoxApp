@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
@@ -59,10 +60,11 @@ fun ServerDisconnectedDialog(onDisconnect: () -> Unit, onReconnect: () -> Unit) 
                 )
                 Text(
                     text = stringResource(Res.string.noConnectionToServer),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 16.dp),
-                    maxLines = 1
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -88,13 +90,13 @@ fun ServerDisconnectedDialog(onDisconnect: () -> Unit, onReconnect: () -> Unit) 
                         colors = ButtonDefaults.buttonColors(containerColor = buttonReconnectDialog),
                         modifier = Modifier
                             .weight(1f)
-                            .wrapContentWidth()
                             .height(48.dp)
                     ) {
                         Text(
                             text = stringResource(Res.string.reconnect),
                             style = MaterialTheme.typography.labelLarge.copy(color = Color.White),
-                            maxLines = 1
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }

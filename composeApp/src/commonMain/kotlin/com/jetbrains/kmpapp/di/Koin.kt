@@ -3,10 +3,14 @@
 package com.jetbrains.kmpapp.di
 
 import com.jetbrains.kmpapp.data.datasources.AppPreferencesRepositoryImpl
+import com.jetbrains.kmpapp.data.datasources.QueueRepositoryImpl
+import com.jetbrains.kmpapp.data.sockets.KtorWebsocketClient
 import com.jetbrains.kmpapp.feature.datastore.AppPreferencesRepository
+import com.jetbrains.kmpapp.feature.datastore.QueueRepository
 import com.jetbrains.kmpapp.ui.screens.home.HomeViewModel
 import com.jetbrains.kmpapp.ui.screens.main.MainViewModel
 import com.jetbrains.kmpapp.ui.screens.qr.QrCodeViewModel
+import com.jetbrains.kmpapp.ui.screens.queue.QueueViewModel
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
 import io.ktor.client.HttpClient
@@ -38,15 +42,22 @@ fun commonModule() = module {
         }
     }
 
-    //single { AppPreferencesRepository(settings = get()) }
+    single { AppStateProvider() }
+    single { KtorWebsocketClient() }
+    single<QueueRepository> { QueueRepositoryImpl() }
     single<AppPreferencesRepository> {
         val settings = get<ObservableSettings>()
         AppPreferencesRepositoryImpl(observableSettings = settings)
     }
 
     factory { HomeViewModel(appPreferencesRepository = get()) }
-    factory { MainViewModel(appPreferencesRepository = get()) }
+    factory { MainViewModel(
+        appPreferencesRepository = get(),
+        webSocketClient = get(),
+        queueRepository = get()
+    ) }
     factory { QrCodeViewModel(appPreferencesRepository = get()) }
+    factory { QueueViewModel(queueRepository = get()) }
 }
 
 //fun initKoin() {//enableNetworkLogs: Boolean = true, appDeclaration: KoinAppDeclaration = {}) =
