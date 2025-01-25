@@ -1,20 +1,23 @@
 package com.jetbrains.kmpapp.di
 
+import platform.UIKit.UIApplication
+import platform.darwin.NSObject
+
 // iOS реализация
 actual class AppStateProvider actual constructor() {
     private var isInBackground = false
 
-    init {
-        UIApplication.shared.applicationState.addObserver(object : NSObject(), UIApplicationStateObserverProtocol {
-            override fun applicationDidEnterBackground(application: UIApplication) {
-                isInBackground = true
-            }
-
-            override fun applicationWillEnterForeground(application: UIApplication) {
-                isInBackground = false
-            }
-        })
-    }
+//    init {
+//        UIApplication.sharedApplication.applicationState.addObserver(object : NSObject(), UIApplicationStateObserverProtocol {
+//            override fun applicationDidEnterBackground(application: UIApplication) {
+//                isInBackground = true
+//            }
+//
+//            override fun applicationWillEnterForeground(application: UIApplication) {
+//                isInBackground = false
+//            }
+//        })
+//    }
 
     actual fun isAppInBackground(): Boolean {
         return isInBackground
