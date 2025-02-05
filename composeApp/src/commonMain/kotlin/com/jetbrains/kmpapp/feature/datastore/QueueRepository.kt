@@ -1,12 +1,14 @@
 package com.jetbrains.kmpapp.feature.datastore
 
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.jetbrains.kmpapp.domain.models.Song
+import com.jetbrains.kmpapp.domain.models.SongInQueue
 
 interface QueueRepository {
     fun addSong(newSong: Song)
 
     fun deleteSong(index: Int)
+
+    fun deleteSong(song: SongInQueue)
 
     fun deleteSongs()
 
@@ -14,7 +16,7 @@ interface QueueRepository {
 
     fun setPitch(pitch: Int)
 
-    fun getSongs(): SnapshotStateList<Song>
+    fun getSongs(): MutableList<SongInQueue>
 
-    fun setSongs(newSongs: SnapshotStateList<Song>)
+    fun setSongs(newSongs: MutableList<Song>)
 }

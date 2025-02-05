@@ -22,7 +22,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -30,10 +29,9 @@ import androidx.navigation.NavHostController
 import com.jetbrains.kmpapp.ui.navigation.NavigationItem
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
 import com.jetbrains.kmpapp.ui.theme.buttonReconnectDialog
-import com.jetbrains.kmpapp.ui.theme.logoTint
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.app_name
-import martyboxapp.composeapp.generated.resources.martin_player_logo
+import martyboxapp.composeapp.generated.resources.martinlogo
 import martyboxapp.composeapp.generated.resources.qr_code
 import martyboxapp.composeapp.generated.resources.scan
 import martyboxapp.composeapp.generated.resources.scanQRcode
@@ -71,13 +69,12 @@ fun HomeScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Image(
-                        painter = painterResource(Res.drawable.martin_player_logo),
+                        painter = painterResource(Res.drawable.martinlogo),
                         contentDescription = stringResource(Res.string.app_name),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp),
+                            .height(300.dp),
                         contentScale = ContentScale.Fit,
-                        colorFilter = ColorFilter.tint(logoTint)
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -105,7 +102,7 @@ fun HomeScreen(
                         )
                         Text(
                             text = stringResource(Res.string.scan),
-                            style = MaterialTheme.typography.headlineMedium
+                            style = MaterialTheme.typography.bodySmall
                                 .copy(color = LocalCustomColorsPalette.current.primaryText),
                             maxLines = 1,
                             fontWeight = FontWeight.Bold,

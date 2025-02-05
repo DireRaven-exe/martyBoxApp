@@ -1,12 +1,10 @@
 package com.jetbrains.kmpapp.ui.screens.main
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -14,11 +12,8 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,22 +30,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
-import com.jetbrains.kmpapp.feature.commands.CommandHandler
-import com.jetbrains.kmpapp.ui.components.ConfirmDisconnectionDialog
-import com.jetbrains.kmpapp.ui.components.Picker
-import com.jetbrains.kmpapp.ui.components.ServerDisconnectedDialog
-import com.jetbrains.kmpapp.ui.components.rememberPickerState
+import com.jetbrains.kmpapp.feature.backhandler.OnBackPressedHandler
+import com.jetbrains.kmpapp.feature.commands.MainCommandHandler
+import com.jetbrains.kmpapp.ui.components.content.Picker
+import com.jetbrains.kmpapp.ui.components.content.rememberPickerState
+import com.jetbrains.kmpapp.ui.components.dialogs.ConfirmDisconnectionDialog
+import com.jetbrains.kmpapp.ui.components.dialogs.ServerDisconnectedDialog
 import com.jetbrains.kmpapp.ui.navigation.NavigationItem
+import com.jetbrains.kmpapp.ui.screens.loading.LoadingScreen
 import com.jetbrains.kmpapp.ui.screens.main.views.ClubTypeView
 import com.jetbrains.kmpapp.ui.screens.main.views.HomeTypeView
-import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
-import com.jetbrains.kmpapp.ui.theme.buttonDisconnectDialog
 import com.jetbrains.kmpapp.ui.theme.buttonReconnectDialog
 import com.jetbrains.kmpapp.utils.Constants
+import io.github.aakira.napier.Napier
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.accept
-import martyboxapp.composeapp.generated.resources.attempting_to_connect
-import martyboxapp.composeapp.generated.resources.cancel
 import martyboxapp.composeapp.generated.resources.indicateTableNumber
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -62,7 +56,7 @@ fun MainScreen(
     paddingValues: PaddingValues
 ) {
     val uiState = mainViewModel.mainUiState.collectAsState().value
-    val savedTableValue = uiState.currentTable
+    var savedTableValue by rememberSaveable { mutableStateOf(uiState.currentTable) }
     val savedQrCode = uiState.savedQrCode
     var showTableDialog = false
     var showDisconnectedDialog by rememberSaveable { mutableStateOf(false) }
@@ -70,19 +64,30 @@ fun MainScreen(
     var isManuallyDisconnected by rememberSaveable { mutableStateOf(false) }
     var isReconnectAllowed  by rememberSaveable { mutableStateOf(true) }
 
-    val filtersState by mainViewModel.selectedFilters.collectAsState()
 
-    val commandHandler = CommandHandler(mainViewModel)
+    val mainCommandHandler = MainCommandHandler(mainViewModel)
     val valuesPickerState = rememberPickerState()
 
     // Сохраняем qrCode при первом получении
     LaunchedEffect(savedQrCode) {
         savedQrCode.let {
             if (isReconnectAllowed) {
+                Napier.d(tag = "Websocket", message = it)
                 mainViewModel.connectToWebSocket(it)
             }
         }
     }
+
+    LaunchedEffect(Unit) {
+        mainViewModel.getCurrentTable()
+    }
+
+    LaunchedEffect(uiState.currentTable) {
+        mainViewModel.getCurrentTable()
+        savedTableValue = uiState.currentTable
+    }
+
+    Napier.e(tag = "SAVEDTABLE", message = "TABLE IN MAIN: ${uiState.currentTable}")
 
     LaunchedEffect(uiState.isServerConnected) {
         if (!uiState.isServerConnected && navController.currentBackStackEntry?.destination?.route != NavigationItem.Home.route) {
@@ -96,6 +101,24 @@ fun MainScreen(
             showTableDialog = true
         }
     }
+
+    OnBackPressedHandler(
+        isServerConnected = uiState.isServerConnected,
+        isLoading = uiState.isLoading,
+        onBackFromServerConnected = {
+            showConfirmDisconnectionDialog = true
+        },
+        onBackFromLoading = {
+            mainViewModel.clearSavedQrCode()
+            mainViewModel.clearSavedTableNumber()
+            navController.navigate("home_screen") {
+                popUpTo("home_screen") { inclusive = true }
+            }
+        },
+        onBackDefault = {
+            showConfirmDisconnectionDialog = true
+        }
+    )
 
     if (showDisconnectedDialog && !isManuallyDisconnected) {
         ServerDisconnectedDialog(
@@ -112,7 +135,8 @@ fun MainScreen(
             onReconnect = {
                 showDisconnectedDialog = false
                 isReconnectAllowed = true
-                mainViewModel.updateIsLoading(true)
+//                mainViewModel.webSocketClient.reset()
+//                mainViewModel.updateIsLoading(true)
                 mainViewModel.connectToWebSocket(savedQrCode)
             }
         )
@@ -156,7 +180,8 @@ fun MainScreen(
             Constants.TYPE_HOME -> {
                 HomeTypeView(
                     uiState = uiState,
-                    commandHandler = commandHandler,
+                    mainViewModel = mainViewModel,
+                    mainCommandHandler = mainCommandHandler,
                     paddingValues = paddingValues,
                     navigationToQueue = { navController.navigate(NavigationItem.Queue.route) }
                 )
@@ -165,9 +190,10 @@ fun MainScreen(
                 if (savedTableValue != -1) {
                     ClubTypeView(
                         uiState = uiState,
-                        commandHandler = commandHandler,
-                        filtersState = filtersState,
-                        paddingValues = paddingValues
+                        mainViewModel = mainViewModel,
+                        mainCommandHandler = mainCommandHandler,
+                        paddingValues = paddingValues,
+                        navigationToQueue = { navController.navigate(NavigationItem.Queue.route) }
                     )
                 } else {
                     showTableDialog = true
@@ -220,7 +246,6 @@ fun MainScreen(
                         modifier = Modifier
                             .padding(16.dp)
                             .wrapContentWidth()
-                            .weight(1f)
                             .height(48.dp)
                     ) {
                         Text(
@@ -231,45 +256,6 @@ fun MainScreen(
                         )
                     }
                 }
-            }
-        }
-    }
-}
-
-
-@Composable
-fun LoadingScreen(onCancelClick: () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-    ) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Text(
-                text = stringResource(Res.string.attempting_to_connect),
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            CircularProgressIndicator(
-                modifier = Modifier.padding(bottom = 32.dp)
-            )
-
-            TextButton(
-                onClick = onCancelClick,
-                border = BorderStroke(1.dp, buttonDisconnectDialog),
-                modifier = Modifier
-                    .fillMaxWidth(fraction = 0.5f)
-                    .height(48.dp)
-            ) {
-                Text(
-                    text = stringResource(Res.string.cancel),
-                    style = MaterialTheme.typography.labelLarge.copy(color = LocalCustomColorsPalette.current.primaryText)
-                )
             }
         }
     }

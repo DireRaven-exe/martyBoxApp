@@ -44,6 +44,7 @@ fun commonModule() = module {
 
     single { AppStateProvider() }
     single { KtorWebsocketClient() }
+    //single { WebSocketService(get()) }
     single<QueueRepository> { QueueRepositoryImpl() }
     single<AppPreferencesRepository> {
         val settings = get<ObservableSettings>()
@@ -53,11 +54,15 @@ fun commonModule() = module {
     factory { HomeViewModel(appPreferencesRepository = get()) }
     factory { MainViewModel(
         appPreferencesRepository = get(),
-        webSocketClient = get(),
+        //webSocketClient = get(),
         queueRepository = get()
     ) }
     factory { QrCodeViewModel(appPreferencesRepository = get()) }
-    factory { QueueViewModel(queueRepository = get()) }
+    factory { QueueViewModel(
+        appPreferencesRepository = get(),
+        //webSocketClient = get(),
+        queueRepository = get()
+    ) }
 }
 
 //fun initKoin() {//enableNetworkLogs: Boolean = true, appDeclaration: KoinAppDeclaration = {}) =

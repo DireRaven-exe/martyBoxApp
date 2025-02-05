@@ -1,91 +1,72 @@
 package com.jetbrains.kmpapp.ui.screens.main.views
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.traversalIndex
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.jetbrains.kmpapp.feature.commands.CommandHandler
-import com.jetbrains.kmpapp.ui.components.CustomSearchView
-import com.jetbrains.kmpapp.ui.components.SongCard
+import com.jetbrains.kmpapp.feature.commands.MainCommandHandler
+import com.jetbrains.kmpapp.ui.components.content.BottomSheetContent
+import com.jetbrains.kmpapp.ui.components.content.MainTopAppBar
+import com.jetbrains.kmpapp.ui.components.content.SongListHomeView
+import com.jetbrains.kmpapp.ui.components.content.TabRowComponent
+import com.jetbrains.kmpapp.ui.components.views.ProgressView
+import com.jetbrains.kmpapp.ui.screens.main.MainViewModel
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
 import com.jetbrains.kmpapp.utils.MainUiState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import martyboxapp.composeapp.generated.resources.Res
-import martyboxapp.composeapp.generated.resources.artist
-import martyboxapp.composeapp.generated.resources.autoFullScreen
 import martyboxapp.composeapp.generated.resources.moveBottomSheet
-import martyboxapp.composeapp.generated.resources.music_plus
-import martyboxapp.composeapp.generated.resources.next
-import martyboxapp.composeapp.generated.resources.pause
-import martyboxapp.composeapp.generated.resources.pitch
-import martyboxapp.composeapp.generated.resources.singingAssessment
-import martyboxapp.composeapp.generated.resources.soundInPause
-import martyboxapp.composeapp.generated.resources.stop
 import martyboxapp.composeapp.generated.resources.swipe_down
 import martyboxapp.composeapp.generated.resources.swipe_up
-import martyboxapp.composeapp.generated.resources.tempo
-import martyboxapp.composeapp.generated.resources.title
-import martyboxapp.composeapp.generated.resources.volume
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.pow
-import kotlin.math.roundToInt
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTypeView(
-    commandHandler: CommandHandler,
+    mainCommandHandler: MainCommandHandler,
     uiState: MainUiState,
     paddingValues: PaddingValues,
-    navigationToQueue: () -> Unit
+    navigationToQueue: () -> Unit,
+    mainViewModel: MainViewModel
 ) {
     var searchQuery by remember  { mutableStateOf(uiState.searchQuery) }
     val scaffoldState = rememberBottomSheetScaffoldState()
@@ -104,8 +85,37 @@ fun HomeTypeView(
         mutableStateOf(scaffoldState.bottomSheetState.currentValue)
     }
 
+    val groupedSongs by remember(uiState.songs) {
+        derivedStateOf { uiState.songs.groupBy { it.tab } }
+    }
+
+    var debouncedSearchQuery by remember { mutableStateOf(searchQuery) }
+    val isFiltering = remember { mutableStateOf(false) }
+
+    val filteredSongs by produceState(initialValue = emptyList(), debouncedSearchQuery, uiState.songs) {
+        isFiltering.value = true
+        value = withContext(Dispatchers.Default) {
+            if (debouncedSearchQuery.isBlank()) uiState.songs
+            else uiState.songs.filter { song ->
+                val titleWords = song.title.split(" ").map { it.lowercase() }
+                val artistWords = song.artist.split(" ").map { it.lowercase() }
+                val queryWords = debouncedSearchQuery.split(" ").map { it.lowercase() }
+                queryWords.all { queryWord ->
+                    titleWords.any { it.contains(queryWord) } || artistWords.any { it.contains(queryWord) }
+                }
+            }
+        }
+        isFiltering.value = false
+    }
+
+    var expandedMenu by remember { mutableStateOf(false) }
+    var expandedTabIndex by remember { mutableStateOf(-1) }
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
+
+    val tabNames by remember { mutableStateOf( groupedSongs.keys.toList()) }
+    val pagerState = rememberPagerState { tabNames.size }
+
     LaunchedEffect(Unit) {
-        // Pre-initialize animations and states
         elementsAlpha.animateTo(
             targetValue = 0.5f,
             animationSpec = tween(durationMillis = 0)
@@ -138,53 +148,29 @@ fun HomeTypeView(
         currentSheetTarget = scaffoldState.bottomSheetState.targetValue
     }
 
-    val groupedSongs by remember { mutableStateOf(uiState.songs.groupBy { it.tab }) }
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
-
-    val tabNames by remember { mutableStateOf( groupedSongs.keys.toList()) }
-    val pagerState = rememberPagerState { tabNames.size }
+    LaunchedEffect(searchQuery) {
+        delay(300)
+        debouncedSearchQuery = searchQuery
+    }
 
     LaunchedEffect(selectedTabIndex) {
         pagerState.animateScrollToPage(selectedTabIndex)
     }
+
     LaunchedEffect(pagerState.currentPage) {
         selectedTabIndex = pagerState.currentPage
-    }
-
-    val filteredSongs = remember(searchQuery, uiState.songs) {
-        if (searchQuery.isBlank()) uiState.songs
-        else uiState.songs.filter { song ->
-            val titleWords = song.title.split(" ").map { it.lowercase() }
-            val artistWords = song.artist.split(" ").map { it.lowercase() }
-            val queryWords = searchQuery.split(" ").map { it.lowercase() }
-            queryWords.all { queryWord ->
-                titleWords.any { it.contains(queryWord) } || artistWords.any { it.contains(queryWord) }
-            }
-        }
+        delay(1000)
+        mainViewModel.updateSongsForTab(tabNames[selectedTabIndex])
     }
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 8.dp, end = 16.dp, top = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        CustomSearchView(
-                            search = searchQuery,
-                            onValueChange = { searchQuery = it },
-                            onClearSearchQuery = { searchQuery = "" },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .padding(end = 16.dp)
-                        )
-                    }
-                },
+            MainTopAppBar(
+                searchQuery = searchQuery,
+                onSearchQueryChange = { searchQuery = it },
+                onClearSearchQuery = { searchQuery = "" },
+                onNavigateToQueue =  { navigationToQueue() }
             )
         },
         containerColor = LocalCustomColorsPalette.current.primaryBackground,
@@ -214,313 +200,105 @@ fun HomeTypeView(
             }
         },
         sheetContent = {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 16.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(color = LocalCustomColorsPalette.current.cardCurrentSongBackground)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(start = 6.dp, end = 6.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(horizontal = 16.dp, vertical = 16.dp)
-                        ) {
-                            Text(
-                                text = uiState.currentSong?.title ?: stringResource(Res.string.title),
-                                style = MaterialTheme.typography.titleMedium,
-                                maxLines = 1,
-                                fontWeight = FontWeight.Bold,
-                                color = LocalCustomColorsPalette.current.primaryText
-                            )
-
-                            Text(
-                                text = uiState.currentSong?.artist ?: stringResource(Res.string.artist),
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 1,
-                                color = LocalCustomColorsPalette.current.secondaryText
-                            )
-
-
-                        }
-                        IconButton(onClick = {
-                            if (!uiState.isPlaying) commandHandler.playAfterPause()
-                            else commandHandler.pause()
-                        }
-                        ) {
-                            if (!uiState.isPlaying) {
-                                Icon(
-                                    imageVector = Icons.Default.PlayArrow,
-                                    contentDescription = "Play",
-                                    modifier = Modifier.size(32.dp)
-                                )
-                            } else {
-                                Icon(
-                                    painter = painterResource(Res.drawable.pause),
-                                    contentDescription = "Pause",
-                                    modifier = Modifier.size(32.dp)
-                                )
-                            }
-                        }
-                        IconButton(
-                            onClick = { commandHandler.next() },
-                        ) {
-                            Icon(
-                                painter = painterResource(Res.drawable.next),
-                                contentDescription = "Next",
-                                modifier = Modifier.size(32.dp),
-                                tint = LocalCustomColorsPalette.current.secondaryIcon
-                            )
-                        }
-
-                    }
-                }
-                Column(
-                    modifier = Modifier.alpha(elementsAlpha.value)
-                        .padding(start = 24.dp, bottom = 8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        IconButton(
-                            enabled = uiState.hasPlus,
-                            onClick = { commandHandler.switchPlusMinus() }
-                        ) {
-                            Icon(
-                                painter = painterResource(Res.drawable.music_plus),
-                                contentDescription = "Has plus",
-                                modifier = Modifier.size(28.dp),
-                            )
-                        }
-                        IconButton(
-                            onClick = {
-                                commandHandler.stop()
-                            }
-                        ) {
-                            Icon(
-                                painter = painterResource(Res.drawable.stop),
-                                contentDescription = "Stop",
-                                modifier = Modifier.size(36.dp),
-                                tint = LocalCustomColorsPalette.current.primaryIcon
-                            )
-                        }
-                        IconButton(
-                            onClick = {
-                                navigationToQueue()
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Stop",
-                                modifier = Modifier.size(36.dp),
-                                tint = LocalCustomColorsPalette.current.primaryIcon
-                            )
-                        }
-                    }
-
-                    Text(text = stringResource(Res.string.volume) + ": ${(uiState.volume * 100).roundToInt()}%")
-                    Slider(
-                        value = uiState.volume,
-                        onValueChange = {
-                            commandHandler.volume(it)
-                            commandHandler.updateVolume(it)
-                        },
-                        valueRange = 0f..1f,
-                        modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp)
-                    )
-
-                    Text(text = stringResource(Res.string.tempo) + ": ${uiState.tempo.format(2)}x")
-                    Slider(
-                        value = uiState.tempo,
-                        onValueChange = {
-                            commandHandler.changeTempo(it)
-                            commandHandler.updateTempo(it)
-                        },
-                        valueRange = 0.5f..1.5f,
-                        modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp)
-                    )
-
-                    Text(stringResource(Res.string.pitch) + ": ${uiState.pitch.format(1)}")
-                    Slider(
-                        value = uiState.pitch.toFloat(),
-                        onValueChange = {
-                            commandHandler.changePitch(it.roundToInt())
-                            commandHandler.updatePitch(it.roundToInt())
-                        },
-                        valueRange = -7f..7f,
-                        steps = 13,
-                        modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp)
-                    )
-                    FlowRow(
-                        verticalArrangement = Arrangement.spacedBy(3.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier,
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Switch(
-                                checked = uiState.autoFullScreen,
-                                onCheckedChange = {
-                                    commandHandler.changeAutoFullScreen(it)
-                                    commandHandler.updateAutoFullScreen(it)
-                                }
-                            )
-                            Text(
-                                text = stringResource(Res.string.autoFullScreen),
-                                style = MaterialTheme.typography.titleMedium,
-                                maxLines = 1
-                            )
-                        }
-
-                        Row(
-                            modifier = Modifier,
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Switch(
-                                checked = uiState.singingAssessment,
-                                onCheckedChange = {
-                                    commandHandler.changeSingingAssessment(it)
-                                    commandHandler.updateSingingAssessment(it)
-
-                                }
-                            )
-                            Text(
-                                text = stringResource(Res.string.singingAssessment),
-                                style = MaterialTheme.typography.titleMedium,
-                                maxLines = 1
-                            )
-                        }
-
-                        Row(
-                            modifier = Modifier,
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Switch(
-                                checked = uiState.soundInPause,
-                                onCheckedChange = {
-                                    commandHandler.changeSoundInPause(it)
-                                    commandHandler.updateSoundInPause(it)
-
-                                }
-                            )
-                            Text(
-                                text = stringResource(Res.string.soundInPause),
-                                style = MaterialTheme.typography.titleMedium,
-                                maxLines = 1
-                            )
-                        }
-                    }
-                }
+            BottomSheetContent(
+                uiState = uiState,
+                mainCommandHandler = mainCommandHandler,
+                elementsAlpha = elementsAlpha.value
+            )
         }
     ) { contentPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-               .padding(contentPadding),
+                .padding(contentPadding),
             contentAlignment = Alignment.TopCenter
         ) {
-
             if (searchQuery.isNotBlank()) {
-                if (filteredSongs.isEmpty()) {
-                    EmptyListView(contentPadding)
-                } else
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 8.dp),
-                    content = {
-                        items(filteredSongs) { song ->
-                            SongCard(
-                                song = song,
-                                isPlaying = song.id == uiState.currentSong?.id
-                                        && song.artist == uiState.currentSong.artist
-                                        && song.title == uiState.currentSong.title
-                                        && uiState.isPlaying,
-                                isCurrentSong = song == uiState.currentSong,
-                                onPlayClick = { commandHandler.play(song) },
-                                onAddClick = { commandHandler.appendMedia(song) }
-                            )
-                        }
+                if (isFiltering.value) {
+                    ProgressView(contentPadding)
+                } else {
+                    if (filteredSongs.isEmpty()) {
+                        EmptyListView(contentPadding)
+                    } else {
+                        SongListHomeView(
+                            songs = filteredSongs,
+                            uiState = uiState,
+                            mainCommandHandler = mainCommandHandler
+                        )
                     }
-                )
-            } else
+                }
+            } else {
                 if (uiState.songs.isNotEmpty()) {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Top
                     ) {
-                        ScrollableTabRow(
+                        TabRowComponent(
+                            tabNames = tabNames,
                             selectedTabIndex = selectedTabIndex,
-                            edgePadding = 16.dp
+                            onTabSelected = { index ->
+                                selectedTabIndex = index
+                            },
+                            onTabLongClick = { index ->
+                                expandedTabIndex = index
+                                expandedMenu = true
+                            }
                         ) {
-                            tabNames.forEachIndexed { index, tabName ->
-                                Tab(
-                                    selected = selectedTabIndex == index,
-                                    onClick = { selectedTabIndex = index },
-                                    text = { Text(tabName) }
+                            DropdownMenu(
+                                expanded = expandedMenu,
+                                onDismissRequest = { expandedMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Проиграть случайно папку") },
+                                    onClick = {
+                                        if (expandedTabIndex in tabNames.indices) {
+                                            selectedTabIndex = expandedTabIndex
+                                            mainCommandHandler.playTab(tab = tabNames[expandedTabIndex])
+                                        }
+                                        expandedMenu = false
+                                    }
                                 )
                             }
                         }
-
-                        val songsForSelectedTab =
-                            groupedSongs[tabNames[selectedTabIndex]] ?: emptyList()
 
                         HorizontalPager(
                             state = pagerState,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f),
-                        ) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.TopCenter
+                        ) { page ->
+                            AnimatedVisibility(
+                                visible = page == pagerState.currentPage,
+                                enter = fadeIn(tween(500)),
+                                exit = fadeOut(tween(500))
                             ) {
-                                LazyColumn(
-                                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                                    modifier = Modifier.semantics { traversalIndex = 1f },
-                                    contentPadding = PaddingValues(
-                                        top = 10.dp,
-                                        bottom = 10.dp,
-                                        start = 2.dp,
-                                        end = 2.dp
-                                    ),
-                                    content = {
-                                        items(songsForSelectedTab) { song ->
-                                            SongCard(
-                                                song = song,
-                                                isPlaying = song.id == uiState.currentSong?.id
-                                                        && song.artist == uiState.currentSong.artist
-                                                        && song.title == uiState.currentSong.title
-                                                        && uiState.isPlaying,
-                                                onPlayClick = { commandHandler.play(song) },
-                                                onAddClick = { commandHandler.appendMedia(song) },
-                                                isCurrentSong = song == uiState.currentSong,
-                                            )
-                                        }
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.TopCenter
+                                ) {
+                                    if (page != pagerState.currentPage) {
+                                        // Ничего не отображать, если это не текущая папка
+                                    } else if (uiState.isTabLoading) {
+                                        ProgressView(paddingValues)
+                                    } else {
+                                        SongListHomeView(
+                                            songs = uiState.currentSongs,
+                                            uiState = uiState,
+                                            mainCommandHandler = mainCommandHandler
+                                        )
                                     }
-                                )
+                                }
                             }
                         }
                     }
-
                 } else {
                     EmptyListView(contentPadding)
                 }
+            }
         }
     }
 }
-
-
 
 fun Float.format(digits: Int): String {
     val factor = 10.0.pow(digits.toDouble())

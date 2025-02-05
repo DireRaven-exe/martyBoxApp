@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.jetbrains.kmpapp.domain.models.ServerData
 import com.jetbrains.kmpapp.domain.models.Song
+import com.jetbrains.kmpapp.domain.models.SongInQueue
 import kotlinx.serialization.Serializable
 
 @Immutable
@@ -22,7 +23,7 @@ data class SongsDto(
     val id: Int,
     val title: String
 )
-fun ResponseDto.toSongs(): SnapshotStateList<Song> {
+fun ResponseDto.toSong(): SnapshotStateList<Song> {
     val songs = value.flatMap { tabMap ->
         tabMap.entries.flatMap { (tab, songItems) ->
             songItems.map {
@@ -33,8 +34,23 @@ fun ResponseDto.toSongs(): SnapshotStateList<Song> {
     return SnapshotStateList<Song>().apply { addAll(songs) }
 }
 
-fun SongsDto.toSongs(): Song {
+fun ResponseDto.toSongsInQueue(): SnapshotStateList<SongInQueue> {
+    val songs = value.flatMap { tabMap ->
+        tabMap.entries.flatMap { (tab, songItems) ->
+            songItems.map {
+                SongInQueue(artist = it.artist, id = it.id, title = it.title, tab = tab)
+            }
+        }
+    }
+    return SnapshotStateList<SongInQueue>().apply { addAll(songs) }
+}
+
+fun SongsDto.toSong(): Song {
     return Song(artist = artist, id = id, title = title, tab = tab)
+}
+
+fun SongsDto.toSongInQueue(): SongInQueue {
+    return SongInQueue(artist = artist, id = id, title = title, tab = tab)
 }
 
 fun ResponseDto.toServerData(): ServerData {

@@ -7,6 +7,7 @@ import com.jetbrains.kmpapp.feature.messages.states.HasPlusMessage
 import com.jetbrains.kmpapp.feature.messages.states.NothingMessage
 import com.jetbrains.kmpapp.feature.messages.states.PitchMessage
 import com.jetbrains.kmpapp.feature.messages.states.PlayingMessage
+import com.jetbrains.kmpapp.feature.messages.states.PlaylistMessage
 import com.jetbrains.kmpapp.feature.messages.states.SingingAssessmentMessage
 import com.jetbrains.kmpapp.feature.messages.states.SongMessage
 import com.jetbrains.kmpapp.feature.messages.states.SoundInPauseMessage
@@ -25,7 +26,8 @@ object States {
         "AdaptatingTempo" to AdaptatingTempoMessage(),
         "HasPlus" to HasPlusMessage(),
         "SingingAssessment" to SingingAssessmentMessage(),
-        "SoundInPause" to SoundInPauseMessage()
+        "SoundInPause" to SoundInPauseMessage(),
+        "playlist" to PlaylistMessage(),
     )
 
     fun getMessage(key: String): StateMessage {

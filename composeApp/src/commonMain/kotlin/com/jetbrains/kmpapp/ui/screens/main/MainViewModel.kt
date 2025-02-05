@@ -1,21 +1,20 @@
 package com.jetbrains.kmpapp.ui.screens.main
 
 import androidx.compose.runtime.Immutable
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jetbrains.kmpapp.data.dto.models.Command
 import com.jetbrains.kmpapp.data.dto.models.ResponseDto
 import com.jetbrains.kmpapp.data.dto.models.toServerData
-import com.jetbrains.kmpapp.data.dto.models.toSongs
-import com.jetbrains.kmpapp.data.sockets.KtorWebsocketClient
-import com.jetbrains.kmpapp.di.AppStateProvider
+import com.jetbrains.kmpapp.data.dto.models.toSong
+import com.jetbrains.kmpapp.data.sockets.WebSocketManager
 import com.jetbrains.kmpapp.domain.models.Song
+import com.jetbrains.kmpapp.domain.models.toSong
+import com.jetbrains.kmpapp.feature.commands.BaseViewModel
 import com.jetbrains.kmpapp.feature.datastore.AppPreferencesRepository
 import com.jetbrains.kmpapp.feature.datastore.QueueRepository
 import com.jetbrains.kmpapp.feature.messages.States
 import com.jetbrains.kmpapp.utils.MainUiState
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -24,45 +23,60 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 
 @Immutable
 class MainViewModel(
-    private val appPreferencesRepository: AppPreferencesRepository,
-    private val webSocketClient: KtorWebsocketClient,
+    appPreferencesRepository: AppPreferencesRepository,
+    //val webSocketClient: KtorWebsocketClient,
     private val queueRepository: QueueRepository
-) : ViewModel(), KtorWebsocketClient.WebsocketEvents {
-
-    private val json = Json { ignoreUnknownKeys = true }
+) : BaseViewModel(appPreferencesRepository) {
 
     private val _uiState = MutableStateFlow(MainUiState())
     val mainUiState = _uiState.asStateFlow()
 
-    //private var webSocketClient: KtorWebsocketClient? = null
-
-    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, exception ->
-        _uiState.update { it.copy(isLoading = false, error = exception.message) }
-    }
-
-    private val _selectedFilters = MutableStateFlow<Map<String, List<String>>>(emptyMap())
-    val selectedFilters = _selectedFilters.asStateFlow()
+    private val webSocketManager = WebSocketManager.getInstance()
 
     init {
+        webSocketManager.addListener(this)
         getQrCode()
         getCurrentTable()
     }
 
-    fun clearSavedQrCode() {
-        viewModelScope.launch(coroutineExceptionHandler) {
-            appPreferencesRepository.saveQrCode(qrCode = "")
+    fun updateSongsForTab(tabName: String) {
+        // Сбрасываем состояние загрузки вкладки
+        _uiState.update { it.copy(isTabLoading = true) }
+        // Получаем песни для вкладки
+        viewModelScope.launch {
+            val filteredSongs = _uiState.value.songs.filter { it.tab == tabName }
+            // Обновляем состояние
+            _uiState.value = _uiState.value.copy(
+                currentSongs = filteredSongs,
+                isTabLoading = false // После загрузки данных для вкладки, меняем статус загрузки
+            )
         }
     }
 
-    fun clearSavedTableNumber() =
+    override fun updateError(error: String?) {
+        _uiState.update { it.copy(error = error) }
+    }
+
+    override fun addSongToQueue(song: Song) {
         viewModelScope.launch(coroutineExceptionHandler) {
-            appPreferencesRepository.saveTableNumber(tableNumber = -1)
+            queueRepository.addSong(song)
         }
+    }
+
+    override fun sendCommand(type: Int, value: String, table: Int) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val command = json.encodeToString(Command(type, value, table))
+                webSocketManager.send(command)
+            } catch (e: Exception) {
+                Napier.e(tag = "WebSocket", message = "Failed to send command: ${e.message}")
+            }
+        }
+    }
 
     fun getQrCode() = viewModelScope.launch(coroutineExceptionHandler) {
         appPreferencesRepository.getQrCode().collect { qrCode ->
@@ -76,14 +90,10 @@ class MainViewModel(
         appPreferencesRepository.getTableNumber().collect { table ->
             table?.let {
                 _uiState.update { it.copy(currentTable = table) }
+                Napier.e(tag = "SAVEDTABLE", message = "TABLE IN MAINVIEWMODEL: ${_uiState.value.currentTable}")
             }
         }
     }
-
-    fun saveCurrentTable(currentTable: Int) =
-        viewModelScope.launch(coroutineExceptionHandler) {
-            appPreferencesRepository.saveTableNumber(tableNumber = currentTable)
-        }
 
     fun updateCurrentTable(tableNumber: Int) {
         _uiState.update { currentState ->
@@ -96,20 +106,17 @@ class MainViewModel(
     }
 
     fun connectToWebSocket(url: String) {
-        webSocketClient.updateCallbacks(this)
-        webSocketClient.updateKtorWebsocketClient(url, AppStateProvider())
-//        webSocketClient = KtorWebsocketClient(
-//            url = url,
-//            listener = this,
-//            appStateProvider = AppStateProvider()
-//        )
-        connect()
+//        webSocketClient.reset()
+//        webSocketClient.updateCallbacks(this)
+//        webSocketClient.updateKtorWebsocketClient(url, AppStateProvider())
+//        connect()
+        webSocketManager.connect(url)
     }
 
     private fun connect() {
-        viewModelScope.launch(Dispatchers.IO) {
-            webSocketClient.connect()
-        }
+//        viewModelScope.launch(Dispatchers.IO) {
+//            webSocketClient.connect()
+//        }
     }
 
     override fun onReceive(data: String) {
@@ -119,7 +126,7 @@ class MainViewModel(
     override fun onConnected() {
         Napier.d(tag = "WebSocket", message = "Connected to WebSocket")
         updateServerConnectionStatus(true)
-        sendCommandToServer(type = 17, value = "", table = 0)
+        sendCommand(type = 17, value = "", table = 0)
     }
 
     override fun onDisconnected(reason: String) {
@@ -127,7 +134,7 @@ class MainViewModel(
         updateServerConnectionStatus(false)
     }
 
-    private fun processWebSocketMessage(jsonString: String) {
+    override fun processWebSocketMessage(jsonString: String) {
         Napier.i(tag = "WebSocket", message = "Received json: $jsonString")
         val trimmedMessage = jsonString.trim()
         if (trimmedMessage == "stop") {
@@ -143,7 +150,7 @@ class MainViewModel(
 
             jsonObject.keys.forEach { key ->
                 val value = jsonObject[key]
-                val processed = States.getMessage(key).process(value?.toString() ?: "", _uiState)
+                val processed = States.getMessage(key).processMain(value?.toString() ?: "", _uiState)
                 Napier.d(tag = "WebSocket", message = "Processed: $key: $processed")
                 isStateMessage = isStateMessage && processed
                 if (processed) dataProcessed = true
@@ -156,7 +163,7 @@ class MainViewModel(
                     responseData?.let {
                         dataProcessed = true
                         _uiState.value = _uiState.value.copy(
-                            songs = it.toSongs(),
+                            songs = it.toSong(),
                             serverData = it.toServerData()
                         )
                     } ?: Napier.e(tag = "WebSocket", message = "Error: failed to parse full server state")
@@ -167,6 +174,9 @@ class MainViewModel(
 
             // Если хоть что-то было обработано или пришли пустые данные, обновляем статус загрузки
             if (dataProcessed || jsonObject.isEmpty()) {
+                Napier.d(tag= "QUEUETEST", message = _uiState.value.currentPlaylist.toString())
+                queueRepository.setSongs(_uiState.value.currentPlaylist)
+
                 updateIsLoading(isLoading = false)
             }
         } catch (e: Exception) {
@@ -174,62 +184,43 @@ class MainViewModel(
         }
     }
 
-    fun sendCommandToServer(type: Int, value: String, table: Int) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val command = json.encodeToString(Command(type, value, table))
-                webSocketClient?.send(command)
-            } catch (e: Exception) {
-                Napier.e(tag = "WebSocket", message = "Failed to send command: ${e.message}")
-            }
-        }
-    }
-
-    fun updateCurrentSong(song: Song?) {
+    override fun updateCurrentSong(song: Song?) {
         _uiState.update { currentState ->
             currentState.copy(currentSong = song)
         }
-//        viewModelScope.launch(coroutineExceptionHandler) {
-//            queueRepository.addSong(newSong = song!!)
-//        }
     }
 
-    fun updateTempo(tempo: Float) {
+    override fun updateTempo(tempo: Float) {
         _uiState.update { currentState ->
             currentState.copy(tempo = tempo)
         }
     }
 
-    fun updatePitch(pitch: Int) {
+    override fun updatePitch(pitch: Int) {
         _uiState.update { currentState ->
             currentState.copy(pitch = pitch)
         }
     }
 
-    fun updateAutoFullScreen(autoFullScreen: Boolean) {
+    override fun updateAutoFullScreen(autoFullScreen: Boolean) {
         _uiState.update { currentState ->
             currentState.copy(autoFullScreen = autoFullScreen)
         }
     }
 
-    fun updateAdaptatingTempo(adaptatingTempo: Boolean) {
-        _uiState.update { currentState ->
-            currentState.copy(adaptatingTempo = adaptatingTempo)
-        }
-    }
-    fun updateDefaultVideoUse(defaultVideoUse: Boolean) {
-        _uiState.update { currentState ->
-            currentState.copy(defaultVideoUse = defaultVideoUse)
-        }
-    }
-
-    fun updateSingingAssessment(singingAssessment: Boolean) {
+    override fun updateSingingAssessment(singingAssessment: Boolean) {
         _uiState.update { currentState ->
             currentState.copy(singingAssessment = singingAssessment)
         }
     }
 
-    fun updateSoundInPause(soundInPause: Boolean) {
+    override fun updateSongs() {
+        _uiState.update { currentState ->
+            currentState.copy(currentPlaylist = queueRepository.getSongs().toSong())
+        }
+    }
+
+    override fun updateSoundInPause(soundInPause: Boolean) {
         _uiState.update { currentState ->
             currentState.copy(soundInPause = soundInPause)
         }
@@ -237,14 +228,12 @@ class MainViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        viewModelScope.launch(Dispatchers.IO) {
-            webSocketClient?.stop()
-        }
+        webSocketManager.removeListener(this)
     }
 
-    fun updateVolume(newVolume: Float) {
+    override fun updateVolume(volume: Float) {
         _uiState.update { currentState ->
-            currentState.copy(volume = newVolume)
+            currentState.copy(volume = volume)
         }
     }
 
@@ -252,9 +241,5 @@ class MainViewModel(
         _uiState.update { currentState ->
             currentState.copy(isLoading = isLoading)
         }
-    }
-
-    fun addSongToQueue(song: Song?) {
-        queueRepository.addSong(newSong = song!!)
     }
 }

@@ -1,8 +1,5 @@
 package com.jetbrains.kmpapp.di
 
-import platform.UIKit.UIApplication
-import platform.darwin.NSObject
-
 // iOS реализация
 actual class AppStateProvider actual constructor() {
     private var isInBackground = false

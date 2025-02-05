@@ -2,12 +2,25 @@ package com.jetbrains.kmpapp.feature.messages.states
 
 import com.jetbrains.kmpapp.feature.messages.StateMessage
 import com.jetbrains.kmpapp.utils.MainUiState
+import com.jetbrains.kmpapp.utils.QueueUiState
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
 class HasPlusMessage: StateMessage {
-    override fun process(value: String, uiState: MutableStateFlow<MainUiState>): Boolean {
+    override fun processMain(value: String, uiState: MutableStateFlow<MainUiState>): Boolean {
+        return try {
+            val cleanedValue = value.replace("\"", "").trim()
+            val hasPlus = cleanedValue.toBoolean()
+            uiState.update { it.copy(hasPlus = hasPlus) }
+            true
+        } catch (e: Exception) {
+            Napier.e(tag = "WebSocket", message = "Error parsing hasPlus data: ${e.message}")
+            false
+        }
+    }
+
+    override fun processQueue(value: String, uiState: MutableStateFlow<QueueUiState>): Boolean {
         return try {
             val cleanedValue = value.replace("\"", "").trim()
             val hasPlus = cleanedValue.toBoolean()

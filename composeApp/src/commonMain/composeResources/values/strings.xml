@@ -31,4 +31,5 @@
     <string name="cancel">Отмена</string>
     <string name="filters">Фильтры</string>
     <string name="queue">Очередь</string>
+    <string name="orders">Мои заказы</string>
 </resources>

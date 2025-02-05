@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jetbrains.kmpapp.feature.datastore.AppPreferencesRepository
 import com.jetbrains.kmpapp.utils.HomeUiState
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,12 +18,6 @@ class HomeViewModel(
     private val _homeUiState = MutableStateFlow(HomeUiState())
     val homeUiState = _homeUiState.asStateFlow()
 
-//    val uiState = appPreferencesRepository.qrCode.map { HomeUiState(savedQrCode = it) }
-//        .stateIn(viewModelScope, SharingStarted.Lazily, HomeUiState())
-
-    //val savedQrCode: Flow<String?> = appPreferencesRepository.qrCode
-        //.stateIn(viewModelScope, SharingStarted.Lazily, null)
-
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, exception ->
         _homeUiState.update { it.copy(isLoading = false, error = exception.message) }
     }
@@ -34,6 +29,7 @@ class HomeViewModel(
     fun getQrCode() = viewModelScope.launch(coroutineExceptionHandler) {
         appPreferencesRepository.getQrCode().collect { qrCode ->
             qrCode?.let {
+                Napier.d(tag = "Websocket", message = "SAVED QR = " + qrCode)
                 _homeUiState.update { it.copy(savedQrCode = qrCode) }
             }
         }
