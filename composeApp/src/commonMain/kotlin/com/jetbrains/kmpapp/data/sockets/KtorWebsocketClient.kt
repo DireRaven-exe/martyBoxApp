@@ -81,29 +81,9 @@ class KtorWebsocketClient {
                     } else {
                         connect()
                     }
-//                    if (_appStateProvider?.isAppInBackground() == true) {
-//                        Napier.d(tag = TAG, message = "App is in background, stopping WebSocket connection...")
-//                        session?.close()//stop()
-//                    } else {
-//                        if (session?.isActive == true) {
-//                            sendPing()
-//                        } else {
-//                            connect()
-//                        }
-//                    }
                     delay(PING_INTERVAL)
                 }
             }
-
-//            scope.launch {
-//                while (session?.isActive == true && !isStopped) {
-//                    Napier.e(tag = TAG, message = appStateProvider.isAppInBackground().toString())
-//                    if (!appStateProvider.isAppInBackground()) { // Проверка состояния приложения
-//                        sendPing()
-//                    }
-//                    delay(PING_INTERVAL)
-//                }
-//            }
 
             session!!.incoming
                 .receiveAsFlow()
@@ -113,7 +93,7 @@ class KtorWebsocketClient {
                     val message = data.readText()
                     listener?.onReceive(message)
 
-                    Napier.i(tag = TAG, message = "Received message: $message")
+                    Napier.i(tag = TAG, message = "Received message: success")
                 }
         } catch (e: Exception) {
             Napier.e(tag = TAG, message = "Error: ${e.message}")
@@ -127,7 +107,7 @@ class KtorWebsocketClient {
     }
 
     private fun reconnect() {
-        if ((isStopped) == true) { //|| _appStateProvider?.isAppInBackground() == true)) {
+        if (isStopped) {
             Napier.d(tag = TAG, message = "Reconnection aborted: client is stopped.")
             return
         }
@@ -200,6 +180,7 @@ class KtorWebsocketClient {
         try {
             session?.send(Frame.Text("ping"))
             Napier.d(tag = TAG, message = "Ping sent")
+            listener?.onPingMessage()
         } catch (e: Exception) {
             Napier.e(tag = TAG, message = "Error sending ping: ${e.message}")
             reconnect()
@@ -219,6 +200,8 @@ class KtorWebsocketClient {
         fun onReceive(data: String)
         fun onConnected()
         fun onDisconnected(reason: String)
+
+        fun onPingMessage()
     }
 
     companion object {

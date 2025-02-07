@@ -4,6 +4,9 @@ import com.jetbrains.kmpapp.di.AppStateProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.internal.SynchronizedObject
 import kotlinx.coroutines.internal.synchronized
 import kotlinx.coroutines.launch
@@ -13,6 +16,9 @@ class WebSocketManager private constructor() : KtorWebsocketClient.WebsocketEven
 
     private val webSocketClient = KtorWebsocketClient()
     private val listeners = mutableListOf<KtorWebsocketClient.WebsocketEvents>()
+
+    private var _isConnected = MutableStateFlow(false) // состояние соединения
+    val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
     fun connect(url: String) {
 
@@ -50,11 +56,17 @@ class WebSocketManager private constructor() : KtorWebsocketClient.WebsocketEven
     }
 
     override fun onConnected() {
+        _isConnected.value = true
         listeners.forEach { it.onConnected() }
     }
 
     override fun onDisconnected(reason: String) {
+        _isConnected.value = false
         listeners.forEach { it.onDisconnected(reason) }
+    }
+
+    override fun onPingMessage() {
+        listeners.forEach { it.onPingMessage() }
     }
 
     companion object {
@@ -71,5 +83,9 @@ class WebSocketManager private constructor() : KtorWebsocketClient.WebsocketEven
                 instance ?: WebSocketManager().also { instance = it }
             }
         }
+    }
+
+    fun isConnected() : Boolean {
+        return _isConnected.value
     }
 }

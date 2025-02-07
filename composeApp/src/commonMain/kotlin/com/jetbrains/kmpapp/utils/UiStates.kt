@@ -9,7 +9,7 @@ import com.jetbrains.kmpapp.domain.models.SongInQueue
 @Stable
 data class MainUiState(
     val songs: SnapshotStateList<Song> = SnapshotStateList(),
-    val currentPlaylist: MutableList<Song> = mutableListOf(),
+    val currentPlaylist: MutableList<SongInQueue> = mutableListOf(),
     val serverData: ServerData = ServerData("", 0),
     val searchQuery: String = "",
     val currentSong: Song? = null,

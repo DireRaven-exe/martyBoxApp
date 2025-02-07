@@ -23,7 +23,7 @@ data class SongsDto(
     val id: Int,
     val title: String
 )
-fun ResponseDto.toSong(): SnapshotStateList<Song> {
+fun ResponseDto.toSongs(): SnapshotStateList<Song> {
     val songs = value.flatMap { tabMap ->
         tabMap.entries.flatMap { (tab, songItems) ->
             songItems.map {
@@ -45,7 +45,7 @@ fun ResponseDto.toSongsInQueue(): SnapshotStateList<SongInQueue> {
     return SnapshotStateList<SongInQueue>().apply { addAll(songs) }
 }
 
-fun SongsDto.toSong(): Song {
+fun SongsDto.toSongs(): Song {
     return Song(artist = artist, id = id, title = title, tab = tab)
 }
 

@@ -11,6 +11,4 @@ sealed class NavigationItem(
     object Home : NavigationItem("/home_screen", "Home", null)
     object QRCode : NavigationItem("/qr_code_screen", "QR", null)
     object Main : NavigationItem("/main_screen", "Main", null)
-
-    object Queue : NavigationItem("/queue_screen", "Queue", null)
 }

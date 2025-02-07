@@ -61,10 +61,24 @@ class WebSocketService : Service() {
         }
     }
 
+    private fun updateNotification(title: String, content: String) {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(1)
+        val notification = NotificationCompat.Builder(this, "WebSocketChannel")
+            .setContentTitle(title)
+            .setContentText(content)
+            .setSmallIcon(R.drawable.notifications)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .build()
+
+        //val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(1, notification)
+    }
+
     private fun startForegroundService() {
         val notification = NotificationCompat.Builder(this, "WebSocketChannel")
-            .setContentTitle("WebSocket Service")
-            .setContentText("Ожидание подключения")
+            .setContentTitle("MARTIN Catalog")
+            .setContentText("Подключён к Martin Profession Karaoke System")
             .setSmallIcon(R.drawable.notifications)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
@@ -93,6 +107,7 @@ class WebSocketService : Service() {
         webSocketJob?.cancel()
         CoroutineScope(Dispatchers.IO).launch {
             webSocketManager?.disconnect()
+            updateNotification("MARTIN Catalog", "Соединение разорвано")
         }
     }
 

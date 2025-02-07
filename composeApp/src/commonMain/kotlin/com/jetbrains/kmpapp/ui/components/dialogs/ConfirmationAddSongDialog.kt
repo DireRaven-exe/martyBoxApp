@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,10 +30,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.jetbrains.kmpapp.ui.screens.main.views.format
+import com.jetbrains.kmpapp.ui.components.content.CustomSliderWithButtons
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
-import com.jetbrains.kmpapp.ui.theme.buttonDisconnectDialog
-import com.jetbrains.kmpapp.ui.theme.buttonReconnectDialog
+import com.jetbrains.kmpapp.ui.theme.buttonDismissDialog
+import com.jetbrains.kmpapp.ui.theme.buttonAcceptDialog
 import martyboxapp.composeapp.generated.resources.ConfirmAddSong
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.accept
@@ -47,7 +46,7 @@ import kotlin.math.roundToInt
 
 @Composable
 fun ConfirmationAddSongDialog(onDismiss: () -> Unit, addSong: (Int) -> Unit) {
-    var pitch by remember { mutableStateOf(0) } // Сохраняем выбранную тональность
+    var pitch by remember { mutableStateOf(0) }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -61,7 +60,7 @@ fun ConfirmationAddSongDialog(onDismiss: () -> Unit, addSong: (Int) -> Unit) {
             ) {
                 Image(
                     painter = painterResource(Res.drawable.thinking),
-                    contentDescription = "no connection",
+                    contentDescription = "thinking",
                     modifier = Modifier.size(64.dp),
                     colorFilter = ColorFilter.tint(color = LocalCustomColorsPalette.current.primaryIcon)
                 )
@@ -72,15 +71,16 @@ fun ConfirmationAddSongDialog(onDismiss: () -> Unit, addSong: (Int) -> Unit) {
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                Text(stringResource(Res.string.pitch) + ": ${pitch.format(1)}")
-                Slider(
+                CustomSliderWithButtons(
+                    label = stringResource(Res.string.pitch),
                     value = pitch.toFloat(),
-                    onValueChange = { newPitch ->
-                        pitch = newPitch.roundToInt()
-                    },
                     valueRange = -7f..7f,
                     steps = 13,
-                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp)
+                    stepSize = 1f,
+                    format = { it.roundToInt().toString() },
+                    onValueChange = {
+                        pitch = it.roundToInt()
+                    }
                 )
 
                 Row(
@@ -90,7 +90,7 @@ fun ConfirmationAddSongDialog(onDismiss: () -> Unit, addSong: (Int) -> Unit) {
                     // Кнопка "Cancel"
                     TextButton(
                         onClick = { onDismiss() },
-                        border = BorderStroke(1.dp, buttonDisconnectDialog),
+                        border = BorderStroke(1.dp, buttonDismissDialog),
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp)
@@ -109,7 +109,7 @@ fun ConfirmationAddSongDialog(onDismiss: () -> Unit, addSong: (Int) -> Unit) {
                             addSong(pitch)
                             onDismiss()
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = buttonReconnectDialog),
+                        colors = ButtonDefaults.buttonColors(containerColor = buttonAcceptDialog),
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp)

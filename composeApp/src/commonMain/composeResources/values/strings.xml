@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <resources>
-    <string name="app_name">MartyBoxApp</string>
-    <string name="pitch">Тональность</string>
+    <string name="app_name">MARTIN Catalog</string>
+    <string name="pitch">Тон</string>
     <string name="tempo">Темп</string>
     <string name="volume">Громкость</string>
     <string name="title">Название</string>
@@ -32,4 +32,5 @@
     <string name="filters">Фильтры</string>
     <string name="queue">Очередь</string>
     <string name="orders">Мои заказы</string>
+    <string name="to_home">Выйти на главный экран</string>
 </resources>

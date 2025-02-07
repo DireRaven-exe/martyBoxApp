@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import com.jetbrains.kmpapp.feature.backhandler.OnBackPressedHandler
-import com.jetbrains.kmpapp.feature.commands.MainCommandHandler
+import com.jetbrains.kmpapp.feature.commands.CommandHandler
 import com.jetbrains.kmpapp.ui.components.content.Picker
 import com.jetbrains.kmpapp.ui.components.content.rememberPickerState
 import com.jetbrains.kmpapp.ui.components.dialogs.ConfirmDisconnectionDialog
@@ -40,7 +40,7 @@ import com.jetbrains.kmpapp.ui.navigation.NavigationItem
 import com.jetbrains.kmpapp.ui.screens.loading.LoadingScreen
 import com.jetbrains.kmpapp.ui.screens.main.views.ClubTypeView
 import com.jetbrains.kmpapp.ui.screens.main.views.HomeTypeView
-import com.jetbrains.kmpapp.ui.theme.buttonReconnectDialog
+import com.jetbrains.kmpapp.ui.theme.buttonAcceptDialog
 import com.jetbrains.kmpapp.utils.Constants
 import io.github.aakira.napier.Napier
 import martyboxapp.composeapp.generated.resources.Res
@@ -65,7 +65,7 @@ fun MainScreen(
     var isReconnectAllowed  by rememberSaveable { mutableStateOf(true) }
 
 
-    val mainCommandHandler = MainCommandHandler(mainViewModel)
+    val commandHandler = CommandHandler(mainViewModel)
     val valuesPickerState = rememberPickerState()
 
     // Сохраняем qrCode при первом получении
@@ -133,11 +133,11 @@ fun MainScreen(
                 mainViewModel.onDisconnected("Connection lost")
             },
             onReconnect = {
-                showDisconnectedDialog = false
-                isReconnectAllowed = true
-//                mainViewModel.webSocketClient.reset()
-//                mainViewModel.updateIsLoading(true)
-                mainViewModel.connectToWebSocket(savedQrCode)
+//                showDisconnectedDialog = false
+//                isReconnectAllowed = true
+////                mainViewModel.webSocketClient.reset()
+////                mainViewModel.updateIsLoading(true)
+//                mainViewModel.connectToWebSocket(savedQrCode)
             }
         )
 
@@ -180,20 +180,16 @@ fun MainScreen(
             Constants.TYPE_HOME -> {
                 HomeTypeView(
                     uiState = uiState,
-                    mainViewModel = mainViewModel,
-                    mainCommandHandler = mainCommandHandler,
+                    commandHandler = commandHandler,
                     paddingValues = paddingValues,
-                    navigationToQueue = { navController.navigate(NavigationItem.Queue.route) }
                 )
             }
             Constants.TYPE_CLUB -> {
                 if (savedTableValue != -1) {
                     ClubTypeView(
                         uiState = uiState,
-                        mainViewModel = mainViewModel,
-                        mainCommandHandler = mainCommandHandler,
+                        commandHandler = commandHandler,
                         paddingValues = paddingValues,
-                        navigationToQueue = { navController.navigate(NavigationItem.Queue.route) }
                     )
                 } else {
                     showTableDialog = true
@@ -242,7 +238,7 @@ fun MainScreen(
                             showTableDialog = false
 
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = buttonReconnectDialog),
+                        colors = ButtonDefaults.buttonColors(containerColor = buttonAcceptDialog),
                         modifier = Modifier
                             .padding(16.dp)
                             .wrapContentWidth()

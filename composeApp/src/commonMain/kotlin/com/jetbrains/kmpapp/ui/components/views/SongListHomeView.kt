@@ -1,4 +1,4 @@
-package com.jetbrains.kmpapp.ui.components.content
+package com.jetbrains.kmpapp.ui.components.views
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,14 +10,15 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.dp
 import com.jetbrains.kmpapp.domain.models.Song
-import com.jetbrains.kmpapp.feature.commands.MainCommandHandler
+import com.jetbrains.kmpapp.feature.commands.CommandHandler
+import com.jetbrains.kmpapp.ui.components.content.SongCard
 import com.jetbrains.kmpapp.utils.MainUiState
 
 @Composable
 fun SongListHomeView(
     songs: List<Song>,
     uiState: MainUiState,
-    mainCommandHandler: MainCommandHandler
+    commandHandler: CommandHandler
 ) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -29,15 +30,15 @@ fun SongListHomeView(
             end = 2.dp
         ),
         content = {
-            items(songs, key = { it.id }) { song ->
+            items(songs) { song ->
                 SongCard(
                     song = song,
                     isPlaying = song.id == uiState.currentSong?.id
                             && song.artist == uiState.currentSong.artist
                             && song.title == uiState.currentSong.title
                             && uiState.isPlaying,
-                    onPlayClick = { mainCommandHandler.play(song) },
-                    onAddClick = { mainCommandHandler.appendMedia(song) },
+                    onPlayClick = { commandHandler.play(song) },
+                    onAddClick = { commandHandler.appendMedia(song) },
                     isCurrentSong = song == uiState.currentSong,
                 )
             }

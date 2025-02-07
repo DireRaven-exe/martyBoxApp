@@ -1,6 +1,5 @@
 package com.jetbrains.kmpapp.ui.components.content
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -12,8 +11,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -115,7 +114,6 @@ fun SongCard(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SongCard(
     song: SongInQueue,
@@ -182,21 +180,29 @@ fun SongCard(
             }
 
             IconButton(
-                onClick = {  },
+                onClick = { /* handle up arrow click */ },
                 modifier = modifier.align(Alignment.CenterVertically)
             ) {
-                Icon(Icons.Default.Menu, contentDescription = "Remove")
+                Row {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Move Up",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Icon(
+                        imageVector = Icons.Filled.KeyboardArrowUp,
+                        contentDescription = "Move Down",
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SongCard(
     song: SongInQueue,
-    onDeleteSong: () -> Unit,
-    modifier: Modifier = Modifier
 ) {
     Box(
         modifier = Modifier
@@ -233,17 +239,6 @@ fun SongCard(
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
                     color = LocalCustomColorsPalette.current.secondaryText
-                )
-            }
-
-            IconButton(
-                onClick = { onDeleteSong() },
-                modifier = Modifier.align(Alignment.CenterVertically)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Clear,
-                    contentDescription = "Play",
-                    modifier = Modifier.size(26.dp)
                 )
             }
         }

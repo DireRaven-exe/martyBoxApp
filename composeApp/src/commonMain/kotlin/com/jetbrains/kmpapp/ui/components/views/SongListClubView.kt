@@ -1,4 +1,4 @@
-package com.jetbrains.kmpapp.ui.components.content
+package com.jetbrains.kmpapp.ui.components.views
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,7 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.jetbrains.kmpapp.domain.models.Song
-import com.jetbrains.kmpapp.feature.commands.MainCommandHandler
+import com.jetbrains.kmpapp.feature.commands.CommandHandler
+import com.jetbrains.kmpapp.ui.components.content.SongCard
 import com.jetbrains.kmpapp.utils.MainUiState
 
 @Composable
@@ -16,7 +17,7 @@ fun SongListClubView(
     songs: List<Song>,
     selectedTable: Int,
     uiState: MainUiState,
-    mainCommandHandler: MainCommandHandler
+    commandHandler: CommandHandler
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -27,7 +28,7 @@ fun SongListClubView(
                     song = song,
                     isCurrentSong = song == uiState.currentSong,
                     onAddClick = { song, pitch ->
-                        mainCommandHandler.requestMedia(
+                        commandHandler.requestMedia(
                             song,
                             selectedTable,
                             pitch

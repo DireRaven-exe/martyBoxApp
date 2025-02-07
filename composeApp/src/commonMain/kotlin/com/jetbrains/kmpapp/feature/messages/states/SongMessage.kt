@@ -1,7 +1,7 @@
 package com.jetbrains.kmpapp.feature.messages.states
 
 import com.jetbrains.kmpapp.data.dto.models.SongsDto
-import com.jetbrains.kmpapp.data.dto.models.toSong
+import com.jetbrains.kmpapp.data.dto.models.toSongs
 import com.jetbrains.kmpapp.data.dto.models.toSongInQueue
 import com.jetbrains.kmpapp.feature.messages.StateMessage
 import com.jetbrains.kmpapp.utils.MainUiState
@@ -20,7 +20,7 @@ class SongMessage: StateMessage {
             val songDto = json.decodeFromString<SongsDto>(cleanedValue)
 
             songDto.let {
-                uiState.update { it.copy(currentSong = songDto.toSong()) }
+                uiState.update { it.copy(currentSong = songDto.toSongs()) }
             } ?: Napier.e(tag = "WebSocket", message = "Error: failed to parse song data")
             true
         } catch (e: Exception) {

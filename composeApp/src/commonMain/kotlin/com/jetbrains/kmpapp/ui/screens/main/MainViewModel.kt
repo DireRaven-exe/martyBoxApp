@@ -5,13 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.jetbrains.kmpapp.data.dto.models.Command
 import com.jetbrains.kmpapp.data.dto.models.ResponseDto
 import com.jetbrains.kmpapp.data.dto.models.toServerData
-import com.jetbrains.kmpapp.data.dto.models.toSong
+import com.jetbrains.kmpapp.data.dto.models.toSongs
 import com.jetbrains.kmpapp.data.sockets.WebSocketManager
 import com.jetbrains.kmpapp.domain.models.Song
-import com.jetbrains.kmpapp.domain.models.toSong
+import com.jetbrains.kmpapp.domain.models.SongInQueue
+import com.jetbrains.kmpapp.domain.models.toSongInQueue
 import com.jetbrains.kmpapp.feature.commands.BaseViewModel
 import com.jetbrains.kmpapp.feature.datastore.AppPreferencesRepository
-import com.jetbrains.kmpapp.feature.datastore.QueueRepository
 import com.jetbrains.kmpapp.feature.messages.States
 import com.jetbrains.kmpapp.utils.MainUiState
 import io.github.aakira.napier.Napier
@@ -23,13 +23,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 
 @Immutable
 class MainViewModel(
     appPreferencesRepository: AppPreferencesRepository,
-    //val webSocketClient: KtorWebsocketClient,
-    private val queueRepository: QueueRepository
 ) : BaseViewModel(appPreferencesRepository) {
 
     private val _uiState = MutableStateFlow(MainUiState())
@@ -43,16 +44,16 @@ class MainViewModel(
         getCurrentTable()
     }
 
-    fun updateSongsForTab(tabName: String) {
-        // Сбрасываем состояние загрузки вкладки
-        _uiState.update { it.copy(isTabLoading = true) }
-        // Получаем песни для вкладки
+    override fun updateSongsForTab(tabName: String) {
         viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                currentSongs = emptyList(),
+                isTabLoading = true
+            )
             val filteredSongs = _uiState.value.songs.filter { it.tab == tabName }
-            // Обновляем состояние
             _uiState.value = _uiState.value.copy(
                 currentSongs = filteredSongs,
-                isTabLoading = false // После загрузки данных для вкладки, меняем статус загрузки
+                isTabLoading = false
             )
         }
     }
@@ -63,7 +64,18 @@ class MainViewModel(
 
     override fun addSongToQueue(song: Song) {
         viewModelScope.launch(coroutineExceptionHandler) {
-            queueRepository.addSong(song)
+            _uiState.update { currentState ->
+                currentState.copy(currentPlaylist = currentState.currentPlaylist.apply { add(song.toSongInQueue()) })
+            }
+        }
+
+    }
+
+    override fun removeSong(songInQueue: SongInQueue) {
+        val updatedPlaylist = _uiState.value.currentPlaylist.toMutableList()
+        updatedPlaylist.remove(songInQueue)
+        _uiState.update { state ->
+            state.copy(currentPlaylist = updatedPlaylist)
         }
     }
 
@@ -88,10 +100,7 @@ class MainViewModel(
 
     fun getCurrentTable() = viewModelScope.launch(coroutineExceptionHandler) {
         appPreferencesRepository.getTableNumber().collect { table ->
-            table?.let {
-                _uiState.update { it.copy(currentTable = table) }
-                Napier.e(tag = "SAVEDTABLE", message = "TABLE IN MAINVIEWMODEL: ${_uiState.value.currentTable}")
-            }
+            table?.let { _uiState.update { it.copy(currentTable = table) } }
         }
     }
 
@@ -106,17 +115,7 @@ class MainViewModel(
     }
 
     fun connectToWebSocket(url: String) {
-//        webSocketClient.reset()
-//        webSocketClient.updateCallbacks(this)
-//        webSocketClient.updateKtorWebsocketClient(url, AppStateProvider())
-//        connect()
         webSocketManager.connect(url)
-    }
-
-    private fun connect() {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            webSocketClient.connect()
-//        }
     }
 
     override fun onReceive(data: String) {
@@ -127,6 +126,7 @@ class MainViewModel(
         Napier.d(tag = "WebSocket", message = "Connected to WebSocket")
         updateServerConnectionStatus(true)
         sendCommand(type = 17, value = "", table = 0)
+        sendCommand(type = 26, value = "[\"playlist\"]", table = _uiState.value.currentTable)
     }
 
     override fun onDisconnected(reason: String) {
@@ -134,8 +134,11 @@ class MainViewModel(
         updateServerConnectionStatus(false)
     }
 
+    override fun onPingMessage() {
+        sendCommand(type = 26, value = "[\"playlist\"]", table = _uiState.value.currentTable)
+    }
+
     override fun processWebSocketMessage(jsonString: String) {
-        Napier.i(tag = "WebSocket", message = "Received json: $jsonString")
         val trimmedMessage = jsonString.trim()
         if (trimmedMessage == "stop") {
             clearSavedQrCode()
@@ -143,44 +146,58 @@ class MainViewModel(
             onDisconnected("Server was stopped")
             return
         }
+
         try {
-            val jsonObject = json.parseToJsonElement(jsonString).jsonObject
+            val jsonObject = json.tryParseToJsonElement(jsonString)?.jsonObject ?: return
+
             var isStateMessage = true
             var dataProcessed = false
 
-            jsonObject.keys.forEach { key ->
-                val value = jsonObject[key]
+            for ((key, value) in jsonObject) {
                 val processed = States.getMessage(key).processMain(value?.toString() ?: "", _uiState)
-                Napier.d(tag = "WebSocket", message = "Processed: $key: $processed")
                 isStateMessage = isStateMessage && processed
                 if (processed) dataProcessed = true
             }
 
-            if (!isStateMessage) {
-                if (jsonObject.containsKey("type") && jsonObject.containsKey("tables") && jsonObject.containsKey("value")) {
-                    val responseData = json.decodeFromString<ResponseDto?>(jsonString)
-                    Napier.d(tag = "WebSocket", message = "Response: $responseData")
-                    responseData?.let {
-                        dataProcessed = true
-                        _uiState.value = _uiState.value.copy(
-                            songs = it.toSong(),
-                            serverData = it.toServerData()
-                        )
-                    } ?: Napier.e(tag = "WebSocket", message = "Error: failed to parse full server state")
-                } else {
-                    Napier.w(tag = "WebSocket", message = "Received non-ResponseDto message, ignoring: $jsonString")
+            if (!isStateMessage && jsonObject.containsKeys("type", "tables", "value")) {
+                try {
+                    val responseData = json.decodeFromString<ResponseDto>(jsonString)
+                    dataProcessed = true
+                    _uiState.value = _uiState.value.copy(
+                        songs = responseData.toSongs(),
+                        serverData = responseData.toServerData()
+                    )
+                } catch (e: Exception) {
+                    Napier.e(tag = "WebSocket", message = "Error parsing ResponseDto: ${e.message}")
                 }
+            } else {
+                Napier.w(tag = "WebSocket", message = "Received unexpected message format: $jsonString")
             }
 
-            // Если хоть что-то было обработано или пришли пустые данные, обновляем статус загрузки
             if (dataProcessed || jsonObject.isEmpty()) {
-                Napier.d(tag= "QUEUETEST", message = _uiState.value.currentPlaylist.toString())
-                queueRepository.setSongs(_uiState.value.currentPlaylist)
-
                 updateIsLoading(isLoading = false)
             }
         } catch (e: Exception) {
             Napier.e(tag = "WebSocket", message = "Error parsing data: ${e.message}")
+        }
+    }
+
+    /**
+     * Проверяет наличие всех ключей в JSON
+     */
+    private fun JsonObject.containsKeys(vararg keys: String): Boolean {
+        return keys.all { this.containsKey(it) }
+    }
+
+    /**
+     * Попытка парсинга JSON с обработкой ошибок
+     */
+    private fun Json.tryParseToJsonElement(jsonString: String): JsonElement? {
+        return try {
+            parseToJsonElement(jsonString)
+        } catch (e: Exception) {
+            Napier.e(tag = "JSON", message = "Failed to parse JSON: ${e.message}")
+            null
         }
     }
 
@@ -214,10 +231,8 @@ class MainViewModel(
         }
     }
 
-    override fun updateSongs() {
-        _uiState.update { currentState ->
-            currentState.copy(currentPlaylist = queueRepository.getSongs().toSong())
-        }
+    override fun updateQueue() {
+        onPingMessage()
     }
 
     override fun updateSoundInPause(soundInPause: Boolean) {
@@ -240,6 +255,18 @@ class MainViewModel(
     fun updateIsLoading(isLoading: Boolean) {
         _uiState.update { currentState ->
             currentState.copy(isLoading = isLoading)
+        }
+    }
+
+    override fun moveSongInQueue(oldIndex: Int, newIndex: Int) {
+        if (oldIndex == newIndex) return  // Исключаем ненужные обновления
+
+        val updatedSongs = _uiState.value.currentPlaylist.toMutableList()
+        val song = updatedSongs.removeAt(oldIndex)
+        updatedSongs.add(newIndex, song)
+
+        _uiState.update { currentState ->
+            currentState.copy(currentPlaylist = updatedSongs) // Обновляем только список
         }
     }
 }

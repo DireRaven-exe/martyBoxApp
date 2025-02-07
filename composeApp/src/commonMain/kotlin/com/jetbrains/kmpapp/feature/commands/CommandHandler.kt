@@ -1,20 +1,11 @@
 package com.jetbrains.kmpapp.feature.commands
 
+import com.jetbrains.kmpapp.domain.models.Song
 import com.jetbrains.kmpapp.domain.models.SongInQueue
 import com.jetbrains.kmpapp.domain.models.toSong
-import com.jetbrains.kmpapp.ui.screens.queue.QueueViewModel
+import com.jetbrains.kmpapp.ui.screens.main.MainViewModel
 
-class QueueCommandHandler(viewModel: QueueViewModel) : BaseCommandHandler(viewModel)  {
-
-    fun moveOn(idFrom: Int, idTo: Int) {
-        sendCommand(
-            type = 21,
-            value = "{\"idFrom\": $idFrom, \"idTo\": $idTo}",
-            table = 0
-        )
-    }
-
-
+class CommandHandler(viewModel: MainViewModel) : BaseCommandHandler(viewModel) {
 
     fun playSoundInPlaylist(id: Int, song: SongInQueue) {
         viewModel.updateCurrentSong(song.toSong())
@@ -25,45 +16,39 @@ class QueueCommandHandler(viewModel: QueueViewModel) : BaseCommandHandler(viewMo
         )
     }
 
-    fun clearPlaylist() {
+    fun appendMedia(song: Song) {
         sendCommand(
-            type = 24,
-            value = "true",
-            table = 0
+            type = 9,
+            value = "{\"tab\": \"${song.tab}\", \"id\": ${song.id}}",
+            table = song.id
         )
-        viewModel.updateSongs()
+        viewModel.addSongToQueue(song)
     }
 
-    fun removeSoundFromPlaylist(id: Int) {
+    fun play(song: Song) {
+//        if (viewModel.mainUiState.value.currentSong == song) {
+//            viewModel.updateCurrentSong(null)
+//        } else {
+            viewModel.updateCurrentSong(song)
         sendCommand(
-            type = 25,
-            value = "$id",
+            type = 2,
+            value = "{\"tab\": \"${song.tab}\", \"id\": ${song.id}}",
             table = 0
         )
-        //viewModel.updateSongs()
+        //}
     }
 
-    fun needStates(table: Int) {
-        sendCommand(
-            type = 26,
-            value = "[\"playlist\"]",
-            table = table
-        )
+    fun moveSongInQueue(oldIndex: Int, newIndex: Int) {
+        viewModel.moveSongInQueue(oldIndex, newIndex)
     }
+
+
 
     fun volume(volume: Float) {
         viewModel.updateVolume(volume)
         sendCommand(
             type = 12,
             value = volume.toString(),
-            table = 0
-        )
-    }
-
-    fun changeAdaptatingTempo(adaptatingTempo: Boolean) {
-        sendCommand(
-            type = 14,
-            value = adaptatingTempo.toString(),
             table = 0
         )
     }
@@ -99,5 +84,13 @@ class QueueCommandHandler(viewModel: QueueViewModel) : BaseCommandHandler(viewMo
 
     fun updateSoundInPause(soundInPause: Boolean) {
         viewModel.updateSoundInPause(soundInPause)
+    }
+
+    fun updateSongsForTab(tabName: String) {
+        viewModel.updateSongsForTab(tabName)
+    }
+
+    fun updateQueue() {
+        viewModel.updateQueue()
     }
 }

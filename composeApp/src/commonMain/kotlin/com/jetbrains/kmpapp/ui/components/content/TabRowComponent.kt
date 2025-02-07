@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
@@ -29,7 +30,8 @@ fun TabRowComponent(
 ) {
     ScrollableTabRow(
         selectedTabIndex = selectedTabIndex,
-        edgePadding = 16.dp
+        edgePadding = 16.dp,
+        containerColor = LocalCustomColorsPalette.current.primaryBackground
     ) {
         tabNames.forEachIndexed { index, tabName ->
             Box(
@@ -39,7 +41,7 @@ fun TabRowComponent(
                         onClick = { onTabSelected(index) },
                         onLongClick = { onTabLongClick(index) }
                     )
-                    .padding(8.dp),
+                    .padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Box(
@@ -53,7 +55,8 @@ fun TabRowComponent(
                             animationSpec = tween(durationMillis = 500)
                         ).value,
                         style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
                     )
                 }
             }

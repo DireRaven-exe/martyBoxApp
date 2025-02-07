@@ -1,4 +1,4 @@
-package com.jetbrains.kmpapp.ui.components.content
+package com.jetbrains.kmpapp.ui.components.views
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,32 +25,29 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.jetbrains.kmpapp.feature.commands.MainCommandHandler
-import com.jetbrains.kmpapp.ui.screens.main.views.format
+import com.jetbrains.kmpapp.feature.commands.CommandHandler
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
+import com.jetbrains.kmpapp.ui.theme.songCardPrimaryContent
+import com.jetbrains.kmpapp.ui.theme.songCardSecondaryContent
 import com.jetbrains.kmpapp.utils.MainUiState
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.artist
 import martyboxapp.composeapp.generated.resources.autoFullScreen
-import martyboxapp.composeapp.generated.resources.music_plus
 import martyboxapp.composeapp.generated.resources.next
 import martyboxapp.composeapp.generated.resources.pause
-import martyboxapp.composeapp.generated.resources.pitch
 import martyboxapp.composeapp.generated.resources.singingAssessment
 import martyboxapp.composeapp.generated.resources.soundInPause
 import martyboxapp.composeapp.generated.resources.stop
-import martyboxapp.composeapp.generated.resources.tempo
 import martyboxapp.composeapp.generated.resources.title
-import martyboxapp.composeapp.generated.resources.volume
+import martyboxapp.composeapp.generated.resources.voice
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun BottomSheetContent(
+fun MainBottomSheetContentView(
     uiState: MainUiState,
-    mainCommandHandler: MainCommandHandler,
+    commandHandler: CommandHandler,
     elementsAlpha: Float
 ) {
     Box(
@@ -76,47 +72,49 @@ fun BottomSheetContent(
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                     fontWeight = FontWeight.Bold,
-                    color = LocalCustomColorsPalette.current.primaryText
+                    color = songCardPrimaryContent
                 )
 
                 Text(
                     text = uiState.currentSong?.artist ?: stringResource(Res.string.artist),
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
-                    color = LocalCustomColorsPalette.current.secondaryText
+                    color = songCardSecondaryContent
                 )
             }
             IconButton(onClick = {
-                if (!uiState.isPlaying) mainCommandHandler.playAfterPause()
-                else mainCommandHandler.pause()
+                if (!uiState.isPlaying) commandHandler.playAfterPause()
+                else commandHandler.pause()
             }) {
                 if (!uiState.isPlaying) {
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = "Play",
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(32.dp),
+                        tint = songCardPrimaryContent
                     )
                 } else {
                     Icon(
                         painter = painterResource(Res.drawable.pause),
                         contentDescription = "Pause",
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(32.dp),
+                        tint = songCardPrimaryContent
                     )
                 }
             }
-            IconButton(onClick = { mainCommandHandler.next() }) {
+            IconButton(onClick = { commandHandler.next() }) {
                 Icon(
                     painter = painterResource(Res.drawable.next),
                     contentDescription = "Next",
                     modifier = Modifier.size(32.dp),
-                    tint = LocalCustomColorsPalette.current.secondaryIcon
+                    tint = songCardSecondaryContent
                 )
             }
         }
     }
     Column(
         modifier = Modifier.alpha(elementsAlpha)
-            .padding(start = 24.dp, bottom = 8.dp)
+            .padding(start = 12.dp, end = 12.dp, bottom = 8.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -124,15 +122,15 @@ fun BottomSheetContent(
         ) {
             IconButton(
                 enabled = uiState.hasPlus,
-                onClick = { mainCommandHandler.switchPlusMinus() }
+                onClick = { commandHandler.switchPlusMinus() }
             ) {
                 Icon(
-                    painter = painterResource(Res.drawable.music_plus),
+                    painter = painterResource(Res.drawable.voice),
                     contentDescription = "Has plus",
                     modifier = Modifier.size(28.dp),
                 )
             }
-            IconButton(onClick = { mainCommandHandler.stop() }) {
+            IconButton(onClick = { commandHandler.stop() }) {
                 Icon(
                     painter = painterResource(Res.drawable.stop),
                     contentDescription = "Stop",
@@ -141,43 +139,15 @@ fun BottomSheetContent(
                 )
             }
         }
-
-        Text(text = stringResource(Res.string.volume) + ": ${(uiState.volume * 100).roundToInt()}%")
-        Slider(
-            value = uiState.volume,
-            onValueChange = {
-                mainCommandHandler.volume(it)
-                mainCommandHandler.updateVolume(it)
-            },
-            valueRange = 0f..1f,
-            modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp)
+        SlidersView(
+            uiState = uiState,
+            commandHandler = commandHandler
         )
 
-        Text(text = stringResource(Res.string.tempo) + ": ${uiState.tempo.format(2)}x")
-        Slider(
-            value = uiState.tempo,
-            onValueChange = {
-                mainCommandHandler.changeTempo(it)
-                mainCommandHandler.updateTempo(it)
-            },
-            valueRange = 0.5f..1.5f,
-            modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp)
-        )
-
-        Text(stringResource(Res.string.pitch) + ": ${uiState.pitch.format(1)}")
-        Slider(
-            value = uiState.pitch.toFloat(),
-            onValueChange = {
-                mainCommandHandler.changePitch(it.roundToInt())
-                mainCommandHandler.updatePitch(it.roundToInt())
-            },
-            valueRange = -7f..7f,
-            steps = 13,
-            modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp)
-        )
         FlowRow(
             verticalArrangement = Arrangement.spacedBy(3.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
         ) {
             Row(
                 modifier = Modifier,
@@ -187,8 +157,8 @@ fun BottomSheetContent(
                 Switch(
                     checked = uiState.autoFullScreen,
                     onCheckedChange = {
-                        mainCommandHandler.changeAutoFullScreen(it)
-                        mainCommandHandler.updateAutoFullScreen(it)
+                        commandHandler.changeAutoFullScreen(it)
+                        commandHandler.updateAutoFullScreen(it)
                     }
                 )
                 Text(
@@ -206,8 +176,8 @@ fun BottomSheetContent(
                 Switch(
                     checked = uiState.singingAssessment,
                     onCheckedChange = {
-                        mainCommandHandler.changeSingingAssessment(it)
-                        mainCommandHandler.updateSingingAssessment(it)
+                        commandHandler.changeSingingAssessment(it)
+                        commandHandler.updateSingingAssessment(it)
                     }
                 )
                 Text(
@@ -225,8 +195,8 @@ fun BottomSheetContent(
                 Switch(
                     checked = uiState.soundInPause,
                     onCheckedChange = {
-                        mainCommandHandler.changeSoundInPause(it)
-                        mainCommandHandler.updateSoundInPause(it)
+                        commandHandler.changeSoundInPause(it)
+                        commandHandler.updateSoundInPause(it)
                     }
                 )
                 Text(

@@ -1,12 +1,21 @@
 package com.jetbrains.kmpapp.feature.commands
 
 import com.jetbrains.kmpapp.domain.models.Song
+import com.jetbrains.kmpapp.domain.models.SongInQueue
 
 abstract class BaseCommandHandler(
     protected val viewModel: BaseViewModel
 ) {
     fun sendCommand(type: Int, value: String, table: Int) {
         viewModel.sendCommand(type, value, table)
+    }
+
+    fun removeSoundFromPlaylist(id: Int) {
+        sendCommand(
+            type = 25,
+            value = "$id",
+            table = 0
+        )
     }
 
     fun setPitchToFile(id: Int, newPitch: Int) {
@@ -63,6 +72,18 @@ abstract class BaseCommandHandler(
 
     fun playAfterPause() {
         sendCommand(type = 11, value = "", table = 0)
+    }
+
+    fun moveOn(idFrom: Int, idTo: Int) {
+        sendCommand(
+            type = 21,
+            value = "{\"idFrom\": $idFrom, \"idTo\": $idTo}",
+            table = 0
+        )
+    }
+
+    fun removeSong(song: SongInQueue) {
+        viewModel.removeSong(song)
     }
 
 }

@@ -8,7 +8,6 @@ import androidx.navigation.compose.composable
 import com.jetbrains.kmpapp.ui.screens.home.HomeScreen
 import com.jetbrains.kmpapp.ui.screens.main.MainScreen
 import com.jetbrains.kmpapp.ui.screens.qr.QrCodeScreen
-import com.jetbrains.kmpapp.ui.screens.queue.QueueScreen
 
 @Composable
 fun Navigation(navController: NavHostController, paddingValues: PaddingValues) {
@@ -21,9 +20,6 @@ fun Navigation(navController: NavHostController, paddingValues: PaddingValues) {
         }
         composable(NavigationItem.Main.route) {
             MainScreen(navController = navController, paddingValues = paddingValues)
-        }
-        composable(NavigationItem.Queue.route) {
-            QueueScreen(navController = navController, paddingValues = paddingValues)
         }
     }
 }

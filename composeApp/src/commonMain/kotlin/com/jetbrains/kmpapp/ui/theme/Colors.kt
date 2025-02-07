@@ -21,5 +21,8 @@ val Pink40 = Color(0xFF7D5260)
 
 val logoTint = Color(0xffffd700)
 
-val buttonDisconnectDialog = Color(0xfffd6246)
-val buttonReconnectDialog = Color(0xff54c575)
+val buttonDismissDialog = Color(0xfffd6246)
+val buttonAcceptDialog = Color(0xff54c575)
+
+val songCardPrimaryContent = Color(0xFFF8F8F8)
+val songCardSecondaryContent = Color(0xFFB0B0B0)

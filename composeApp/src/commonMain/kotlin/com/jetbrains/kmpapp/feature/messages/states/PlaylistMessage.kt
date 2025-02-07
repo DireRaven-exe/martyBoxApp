@@ -2,8 +2,8 @@ package com.jetbrains.kmpapp.feature.messages.states
 
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.jetbrains.kmpapp.data.dto.models.SongsDto
-import com.jetbrains.kmpapp.data.dto.models.toSong
-import com.jetbrains.kmpapp.domain.models.Song
+import com.jetbrains.kmpapp.data.dto.models.toSongInQueue
+import com.jetbrains.kmpapp.data.dto.models.toSongs
 import com.jetbrains.kmpapp.domain.models.SongInQueue
 import com.jetbrains.kmpapp.domain.models.toSongInQueue
 import com.jetbrains.kmpapp.feature.messages.StateMessage
@@ -33,7 +33,7 @@ class PlaylistMessage : StateMessage {
                 playlist[""]?.jsonArray?.mapNotNull { songJson ->
                     try {
                         val songDto = json.decodeFromJsonElement<SongsDto>(songJson)
-                        songDto.toSong()
+                        songDto.toSongInQueue()
                     } catch (e: Exception) {
                         Napier.e(tag = "WebSocket", message = "Error decoding song: ${e.message}")
                         null
@@ -43,7 +43,7 @@ class PlaylistMessage : StateMessage {
 
             // Обновляем состояние UI
             uiState.update { currentState ->
-                currentState.copy(currentPlaylist = SnapshotStateList<Song>().apply { addAll(songs) })
+                currentState.copy(currentPlaylist = songs.toMutableList())
             }
             true
         } catch (e: Exception) {
@@ -65,7 +65,7 @@ class PlaylistMessage : StateMessage {
                 playlist[""]?.jsonArray?.mapNotNull { songJson ->
                     try {
                         val songDto = json.decodeFromJsonElement<SongsDto>(songJson)
-                        songDto.toSong()
+                        songDto.toSongs()
                     } catch (e: Exception) {
                         Napier.e(tag = "WebSocket", message = "Error decoding song: ${e.message}")
                         null
@@ -77,6 +77,7 @@ class PlaylistMessage : StateMessage {
             uiState.update { currentState ->
                 currentState.copy(currentPlaylist = SnapshotStateList<SongInQueue>().apply { addAll(songs.map { it.toSongInQueue() }) })
             }
+            Napier.e(tag = "currentPlaylist", message = "currentPlaylist = ${uiState.value.currentPlaylist}")
             true
         } catch (e: Exception) {
             Napier.e(tag = "WebSocket", message = "Error parsing playlist data: ${e.message}")

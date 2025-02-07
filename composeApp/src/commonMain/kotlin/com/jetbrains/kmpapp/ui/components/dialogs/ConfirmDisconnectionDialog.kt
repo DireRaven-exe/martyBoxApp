@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.jetbrains.kmpapp.ui.theme.buttonReconnectDialog
+import com.jetbrains.kmpapp.ui.theme.buttonAcceptDialog
 import martyboxapp.composeapp.generated.resources.ConfirmADisconnection
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.accept
@@ -45,7 +45,7 @@ fun ConfirmDisconnectionDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
                         onConfirm()
                         onDismiss()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = buttonReconnectDialog),
+                    colors = ButtonDefaults.buttonColors(containerColor = buttonAcceptDialog),
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp)
