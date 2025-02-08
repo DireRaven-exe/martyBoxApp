@@ -42,7 +42,7 @@ fun commonModule() = module {
 
     single { AppStateProvider() }
     single { KtorWebsocketClient() }
-    single { WebSocketManager() }
+    single { WebSocketManager.getInstance() }
     single<AppPreferencesRepository> {
         val settings = get<ObservableSettings>()
         AppPreferencesRepositoryImpl(observableSettings = settings)

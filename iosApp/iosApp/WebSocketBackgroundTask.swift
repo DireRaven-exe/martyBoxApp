@@ -1,8 +1,6 @@
 import ComposeApp
 import Foundation
-import platform.Foundation.NSURLSession
-import platform.Foundation.NSURLSessionConfiguration
-import platform.BackgroundTasks.BGTaskScheduler
+import BackgroundTasks
 
 class WebSocketBackgroundTask {
 
@@ -23,9 +21,11 @@ class WebSocketBackgroundTask {
     func handle(task: BGTask) {
         schedule()
 
-        let webSocketManager = KoinKt.get(WebSocketManager.self) //WebSocketManager.shared
-        webSocketManager.send("ping")
+        // Используем WebSocketManager.shared из Kotlin
+        let webSocketManager = WebSocketManager.shared
+        webSocketManager.send(message: "ping")
 
         task.setTaskCompleted(success: true)
     }
 }
+

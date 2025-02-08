@@ -37,7 +37,7 @@ class WebSocketService : Service() {
         }
 
         startForegroundService()
-        webSocketManager = get()
+        webSocketManager = WebSocketManager.getInstance()
         appPreferencesRepository = get()
         observeQrCodeAndConnect()
     }
