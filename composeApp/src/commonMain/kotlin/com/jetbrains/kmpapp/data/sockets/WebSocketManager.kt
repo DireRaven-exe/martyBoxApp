@@ -3,16 +3,12 @@ package com.jetbrains.kmpapp.data.sockets
 import com.jetbrains.kmpapp.di.AppStateProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.internal.SynchronizedObject
-import kotlinx.coroutines.internal.synchronized
 import kotlinx.coroutines.launch
-import kotlin.concurrent.Volatile
 
-class WebSocketManager private constructor() : KtorWebsocketClient.WebsocketEvents {
+class WebSocketManager : KtorWebsocketClient.WebsocketEvents {
 
     private val webSocketClient = KtorWebsocketClient()
     private val listeners = mutableListOf<KtorWebsocketClient.WebsocketEvents>()
@@ -69,21 +65,26 @@ class WebSocketManager private constructor() : KtorWebsocketClient.WebsocketEven
         listeners.forEach { it.onPingMessage() }
     }
 
-    companion object {
-        @Volatile
-        private var instance: WebSocketManager? = null
+//    companion object {
+//        @Volatile
+//        private var instance: WebSocketManager? = null
+//
+//        // Объект для синхронизации
+//        @OptIn(InternalCoroutinesApi::class)
+//        private val lock = SynchronizedObject()
+//
+//        @OptIn(InternalCoroutinesApi::class)
+//        fun getInstance(): WebSocketManager {
+//            return instance ?: synchronized(lock) {
+//                instance ?: WebSocketManager().also { instance = it }
+//            }
+//        }
+//
+//        val shared: WebSocketManager
+//            get() = getInstance()
+//    }
 
-        // Объект для синхронизации
-        @OptIn(InternalCoroutinesApi::class)
-        private val lock = SynchronizedObject()
 
-        @OptIn(InternalCoroutinesApi::class)
-        fun getInstance(): WebSocketManager {
-            return instance ?: synchronized(lock) {
-                instance ?: WebSocketManager().also { instance = it }
-            }
-        }
-    }
 
     fun isConnected() : Boolean {
         return _isConnected.value
