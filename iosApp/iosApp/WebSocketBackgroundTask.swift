@@ -22,7 +22,7 @@ class WebSocketBackgroundTask {
         schedule()
 
         // Используем WebSocketManager.shared из Kotlin
-        let webSocketManager = WebSocketManager.shared
+        let webSocketManager = WebSocketManager.companion.shared
         webSocketManager.send(message: "ping")
 
         task.setTaskCompleted(success: true)

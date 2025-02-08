@@ -12,6 +12,7 @@ import kotlinx.coroutines.internal.synchronized
 import kotlinx.coroutines.launch
 import kotlin.concurrent.Volatile
 import kotlin.jvm.JvmStatic
+import kotlin.native.concurrent.ThreadLocal
 
 class WebSocketManager : KtorWebsocketClient.WebsocketEvents {
 
