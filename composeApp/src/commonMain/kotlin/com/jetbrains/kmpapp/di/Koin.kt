@@ -23,6 +23,7 @@ import org.koin.core.context.startKoin
 import org.koin.core.module.Module
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
+import org.koin.mp.KoinPlatform.getKoin
 
 fun commonModule() = module {
     single {
@@ -70,3 +71,7 @@ fun initKoin(appDeclaration: KoinAppDeclaration = {}) =
 fun initKoin() = initKoin {}
 
 expect fun platformModule(): Module
+
+fun getAppPreferencesRepository(): AppPreferencesRepository {
+    return getKoin().get()
+}
