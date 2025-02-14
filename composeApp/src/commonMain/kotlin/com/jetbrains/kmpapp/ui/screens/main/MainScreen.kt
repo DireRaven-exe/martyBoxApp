@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
+import com.jetbrains.kmpapp.data.sockets.WebSocketConnectionState
 import com.jetbrains.kmpapp.feature.backhandler.OnBackPressedHandler
 import com.jetbrains.kmpapp.feature.commands.CommandHandler
 import com.jetbrains.kmpapp.ui.components.content.Picker
@@ -89,9 +90,19 @@ fun MainScreen(
 
     Napier.e(tag = "SAVEDTABLE", message = "TABLE IN MAIN: ${uiState.currentTable}")
 
-    LaunchedEffect(uiState.isServerConnected) {
-        if (!uiState.isServerConnected && navController.currentBackStackEntry?.destination?.route != NavigationItem.Home.route) {
-            showDisconnectedDialog = true
+//    LaunchedEffect(uiState.isServerConnected) {
+//        if (!uiState.isServerConnected && navController.currentBackStackEntry?.destination?.route != NavigationItem.Home.route) {
+//            showDisconnectedDialog = true
+//        }
+//    }
+
+    LaunchedEffect(mainViewModel.connectionState) {
+        mainViewModel.connectionState.collect { state ->
+            if (state == WebSocketConnectionState.Disconnected) {
+                showDisconnectedDialog = true
+            } else {
+                showDisconnectedDialog = false
+            }
         }
     }
 
@@ -131,13 +142,6 @@ fun MainScreen(
                     popUpTo(NavigationItem.Home.route) { inclusive = true }
                 }
                 mainViewModel.onDisconnected("Connection lost")
-            },
-            onReconnect = {
-//                showDisconnectedDialog = false
-//                isReconnectAllowed = true
-////                mainViewModel.webSocketClient.reset()
-////                mainViewModel.updateIsLoading(true)
-//                mainViewModel.connectToWebSocket(savedQrCode)
             }
         )
 

@@ -32,7 +32,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun ServerDisconnectedDialog(onDisconnect: () -> Unit, onReconnect: () -> Unit) {
+fun ServerDisconnectedDialog(onDisconnect: () -> Unit) {
     Dialog(onDismissRequest = onDisconnect) {
         Surface(
             shape = MaterialTheme.shapes.medium,
@@ -75,23 +75,6 @@ fun ServerDisconnectedDialog(onDisconnect: () -> Unit, onReconnect: () -> Unit) 
                             style = MaterialTheme.typography.bodySmall.copy(color = LocalCustomColorsPalette.current.primaryText)
                         )
                     }
-
-//                    Spacer(modifier = Modifier.width(8.dp))
-//
-//                    Button(
-//                        onClick = onReconnect,
-//                        colors = ButtonDefaults.buttonColors(containerColor = buttonReconnectDialog),
-//                        modifier = Modifier
-//                            .weight(1f)
-//                            .height(48.dp)
-//                    ) {
-//                        Text(
-//                            text = stringResource(Res.string.reconnect),
-//                            style = MaterialTheme.typography.bodySmall.copy(color = Color.White),
-//                            maxLines = 1,
-//                            overflow = TextOverflow.Ellipsis
-//                        )
-//                    }
                 }
             }
         }

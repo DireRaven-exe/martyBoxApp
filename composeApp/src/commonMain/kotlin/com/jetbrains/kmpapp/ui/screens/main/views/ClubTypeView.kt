@@ -15,6 +15,7 @@ import com.jetbrains.kmpapp.feature.commands.CommandHandler
 import com.jetbrains.kmpapp.ui.components.content.MainTopAppBar
 import com.jetbrains.kmpapp.ui.components.content.QueueTopAppBar
 import com.jetbrains.kmpapp.ui.components.views.ClubContentView
+import com.jetbrains.kmpapp.ui.components.views.QueueClubContentView
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
 import com.jetbrains.kmpapp.utils.MainUiState
 import kotlinx.coroutines.Dispatchers
@@ -66,8 +67,11 @@ fun ClubTypeView(
         topBar = {
             if(isQueueOpen) {
                 QueueTopAppBar(
+                    type = uiState.serverData.type,
                     title = stringResource(Res.string.orders),
-                    onSheetQueueClose = { isQueueOpen = false }
+                    onSheetQueueClose = { isQueueOpen = false },
+                    onClearQueue = {},
+
                 )
             } else {
                 MainTopAppBar(
@@ -85,7 +89,7 @@ fun ClubTypeView(
     ) { contentPadding ->
         if (isQueueOpen) {
             QueueClubContentView(
-                currentPlaylist = uiState.currentPlaylist,
+                uiState = uiState,
                 commandHandler = commandHandler,
                 lazyListState = lazyListState,
                 contentPadding = contentPadding

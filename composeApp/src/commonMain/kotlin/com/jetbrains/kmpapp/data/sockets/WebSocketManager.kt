@@ -1,9 +1,13 @@
 package com.jetbrains.kmpapp.data.sockets
 
-import com.jetbrains.kmpapp.di.AppStateProvider
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,65 +19,76 @@ import kotlin.concurrent.Volatile
 class WebSocketManager : KtorWebsocketClient.WebsocketEvents {
 
     private val webSocketClient = KtorWebsocketClient()
-    private val listeners = mutableListOf<KtorWebsocketClient.WebsocketEvents>()
+    private var listener: KtorWebsocketClient.WebsocketEvents? = null
 
-    private var _isConnected = MutableStateFlow(false) // состояние соединения
+    private var _isConnected = MutableStateFlow(false)
     val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
-    fun connect(url: String) {
+    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var connectJob: Job? = null
 
-        CoroutineScope(Dispatchers.Main).launch {
-            webSocketClient.updateKtorWebsocketClient(url, AppStateProvider())
+    fun connect(url: String) {
+        connectJob?.cancel() // Отменяем предыдущее подключение
+        connectJob = scope.launch {
+            webSocketClient.updateKtorWebsocketClient(url)
             webSocketClient.updateCallbacks(this@WebSocketManager)
             webSocketClient.reset()
-
             webSocketClient.connect()
         }
     }
 
     fun disconnect() {
-        CoroutineScope(Dispatchers.Main).launch {
+        Napier.d(tag = "WebSocket", message = "ABOBA")
+        connectJob?.cancel() // Отменяем текущее подключение
+        scope.launch {
             webSocketClient.stop()
         }
     }
 
     fun send(message: String) {
-        CoroutineScope(Dispatchers.Main).launch {
+        Napier.e(tag = "SenderMessages", message = "$this")
+        scope.launch(Dispatchers.IO) {
             webSocketClient.send(message)
         }
     }
 
     fun addListener(listener: KtorWebsocketClient.WebsocketEvents) {
-        listeners.add(listener)
+        this.listener = listener
     }
 
-    fun removeListener(listener: KtorWebsocketClient.WebsocketEvents) {
-        listeners.remove(listener)
+    fun removeListener() {
+        this.listener = null
     }
 
     override fun onReceive(data: String) {
-        listeners.forEach { it.onReceive(data) }
+        listener?.onReceive(data)
     }
 
     override fun onConnected() {
         _isConnected.value = true
-        listeners.forEach { it.onConnected() }
+        listener?.onConnected()
     }
 
     override fun onDisconnected(reason: String) {
         _isConnected.value = false
-        listeners.forEach { it.onDisconnected(reason) }
+        listener?.onDisconnected(reason)
     }
 
     override fun onPingMessage() {
-        listeners.forEach { it.onPingMessage() }
+        listener?.onPingMessage()
+    }
+
+    // Полное уничтожение WebSocketManager
+    fun destroy() {
+        disconnect() // Останавливаем WebSocket
+        scope.cancel() // Отменяем все корутины
+        instance = null // Удаляем singleton
     }
 
     companion object {
         @Volatile
         private var instance: WebSocketManager? = null
 
-        // Объект для синхронизации
         @OptIn(InternalCoroutinesApi::class)
         private val lock = SynchronizedObject()
 
@@ -83,14 +98,5 @@ class WebSocketManager : KtorWebsocketClient.WebsocketEvents {
                 instance ?: WebSocketManager().also { instance = it }
             }
         }
-
-        val shared: WebSocketManager
-            get() = getInstance()
-    }
-
-
-
-    fun isConnected() : Boolean {
-        return _isConnected.value
     }
 }

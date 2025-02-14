@@ -10,7 +10,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.android.datatransport.BuildConfig
 import com.jetbrains.kmpapp.di.initKoin
-import com.jetbrains.kmpapp.feature.sockets.WebSocketService
+import com.jetbrains.kmpapp.feature.sockets.WebSocketWorker
 import com.jetbrains.kmpapp.utils.ContextUtils
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -38,7 +38,7 @@ class MartyBoxApp : Application() {
             }
         }
 
-        WebSocketService.start(this@MartyBoxApp)
+        WebSocketWorker.start(this@MartyBoxApp)
     }
 
     companion object {
@@ -52,5 +52,9 @@ class MartyBoxApp : Application() {
             return ProcessLifecycleOwner.get()
         }
     }
-}
 
+    override fun onTerminate() {
+        super.onTerminate()
+        WebSocketWorker.stop(this@MartyBoxApp)
+    }
+}

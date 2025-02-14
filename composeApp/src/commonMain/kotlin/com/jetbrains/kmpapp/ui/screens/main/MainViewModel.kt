@@ -6,7 +6,8 @@ import com.jetbrains.kmpapp.data.dto.models.Command
 import com.jetbrains.kmpapp.data.dto.models.ResponseDto
 import com.jetbrains.kmpapp.data.dto.models.toServerData
 import com.jetbrains.kmpapp.data.dto.models.toSongs
-import com.jetbrains.kmpapp.data.sockets.WebSocketManager
+import com.jetbrains.kmpapp.data.sockets.WebSocketConnectionState
+import com.jetbrains.kmpapp.data.sockets.WebSocketService
 import com.jetbrains.kmpapp.domain.models.Song
 import com.jetbrains.kmpapp.domain.models.SongInQueue
 import com.jetbrains.kmpapp.domain.models.toSongInQueue
@@ -15,10 +16,10 @@ import com.jetbrains.kmpapp.feature.datastore.AppPreferencesRepository
 import com.jetbrains.kmpapp.feature.messages.States
 import com.jetbrains.kmpapp.utils.MainUiState
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -31,17 +32,52 @@ import kotlinx.serialization.json.jsonObject
 @Immutable
 class MainViewModel(
     appPreferencesRepository: AppPreferencesRepository,
+    private val webSocketService: WebSocketService
 ) : BaseViewModel(appPreferencesRepository) {
 
     private val _uiState = MutableStateFlow(MainUiState())
     val mainUiState = _uiState.asStateFlow()
 
-    private val webSocketManager = WebSocketManager.getInstance()
+    private val _messages = MutableStateFlow<List<String>>(emptyList())
+    val messages: StateFlow<List<String>> = _messages
+
+    private val _connectionState = MutableStateFlow<WebSocketConnectionState>(
+        WebSocketConnectionState.Disconnected
+    )
+    val connectionState: StateFlow<WebSocketConnectionState> = _connectionState
 
     init {
-        webSocketManager.addListener(this)
-        getQrCode()
+        observeWebSocket()
         getCurrentTable()
+        getQrCode()
+    }
+
+    private fun observeWebSocket() {
+        // Подписка на состояние подключения
+        viewModelScope.launch {
+            webSocketService.observeConnectionState().collect { state ->
+                _connectionState.value = state
+                if (state == WebSocketConnectionState.Connected) {
+                    Napier.e(tag = "AndroidWebSocket", message = "count = $$$")
+                    onConnected()  // Вызываем onConnected, когда WebSocket подключен
+                }
+                updateServerConnectionStatus(state == WebSocketConnectionState.Connected)
+            }
+        }
+
+        // Подписка на получение сообщений
+        viewModelScope.launch {
+            webSocketService.observeMessages().collect { message ->
+                onReceive(message)  // Вызываем onReceived при получении сообщения
+                _messages.value += message
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Napier.e(tag = "MAINVIEWMODEL", message = "onCleared")
+        _uiState.value = MainUiState()
     }
 
     override fun updateSongsForTab(tabName: String) {
@@ -68,7 +104,6 @@ class MainViewModel(
                 currentState.copy(currentPlaylist = currentState.currentPlaylist.apply { add(song.toSongInQueue()) })
             }
         }
-
     }
 
     override fun removeSong(songInQueue: SongInQueue) {
@@ -80,10 +115,11 @@ class MainViewModel(
     }
 
     override fun sendCommand(type: Int, value: String, table: Int) {
-        CoroutineScope(Dispatchers.IO).launch {
+        Napier.d(tag = "MAINVIEWMODEL", message = "$this")
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val command = json.encodeToString(Command(type, value, table))
-                webSocketManager.send(command)
+                webSocketService.sendMessage(command)
             } catch (e: Exception) {
                 Napier.e(tag = "WebSocket", message = "Failed to send command: ${e.message}")
             }
@@ -96,6 +132,10 @@ class MainViewModel(
                 _uiState.update { it.copy(savedQrCode = qrCode) }
             }
         }
+    }
+
+    fun disconnect() {
+        webSocketService.disconnect()
     }
 
     fun getCurrentTable() = viewModelScope.launch(coroutineExceptionHandler) {
@@ -115,7 +155,8 @@ class MainViewModel(
     }
 
     fun connectToWebSocket(url: String) {
-        webSocketManager.connect(url)
+        Napier.e(tag = "WebSocket", message = "Connecting to WebSocket: $url")
+        webSocketService.connect(url)
     }
 
     override fun onReceive(data: String) {
@@ -130,6 +171,7 @@ class MainViewModel(
     }
 
     override fun onDisconnected(reason: String) {
+        _connectionState.value = WebSocketConnectionState.Disconnected
         Napier.d(tag = "WebSocket", message = "Disconnected: $reason")
         updateServerConnectionStatus(false)
     }
@@ -154,7 +196,7 @@ class MainViewModel(
             var dataProcessed = false
 
             for ((key, value) in jsonObject) {
-                val processed = States.getMessage(key).processMain(value?.toString() ?: "", _uiState)
+                val processed = States.getMessage(key).process(value?.toString() ?: "", _uiState)
                 isStateMessage = isStateMessage && processed
                 if (processed) dataProcessed = true
             }
@@ -182,16 +224,10 @@ class MainViewModel(
         }
     }
 
-    /**
-     * Проверяет наличие всех ключей в JSON
-     */
     private fun JsonObject.containsKeys(vararg keys: String): Boolean {
         return keys.all { this.containsKey(it) }
     }
 
-    /**
-     * Попытка парсинга JSON с обработкой ошибок
-     */
     private fun Json.tryParseToJsonElement(jsonString: String): JsonElement? {
         return try {
             parseToJsonElement(jsonString)
@@ -241,11 +277,6 @@ class MainViewModel(
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        webSocketManager.removeListener(this)
-    }
-
     override fun updateVolume(volume: Float) {
         _uiState.update { currentState ->
             currentState.copy(volume = volume)
@@ -259,14 +290,23 @@ class MainViewModel(
     }
 
     override fun moveSongInQueue(oldIndex: Int, newIndex: Int) {
-        if (oldIndex == newIndex) return  // Исключаем ненужные обновления
+        if (oldIndex == newIndex) return
 
         val updatedSongs = _uiState.value.currentPlaylist.toMutableList()
         val song = updatedSongs.removeAt(oldIndex)
         updatedSongs.add(newIndex, song)
 
         _uiState.update { currentState ->
-            currentState.copy(currentPlaylist = updatedSongs) // Обновляем только список
+            currentState.copy(currentPlaylist = updatedSongs)
+        }
+    }
+
+    override fun clearQueue() {
+        viewModelScope.launch(coroutineExceptionHandler) {
+            _uiState.update { currentState ->
+                currentState.copy(currentPlaylist = mutableListOf())
+            }
         }
     }
 }
+

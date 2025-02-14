@@ -41,6 +41,8 @@ abstract class BaseViewModel(
 
     abstract fun removeSong(songInQueue: SongInQueue)
 
+    abstract fun clearQueue()
+
     fun clearSavedQrCode() {
         viewModelScope.launch(coroutineExceptionHandler) {
             appPreferencesRepository.saveQrCode(qrCode = "")

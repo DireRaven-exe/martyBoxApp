@@ -11,53 +11,65 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.jetbrains.kmpapp.R
-import com.jetbrains.kmpapp.data.sockets.WebSocketManager
+import com.jetbrains.kmpapp.data.sockets.WebSocketService
 import com.jetbrains.kmpapp.feature.datastore.AppPreferencesRepository
-import com.russhwolf.settings.ExperimentalSettingsApi
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.get
 
-class WebSocketService : Service() {
 
-    private var webSocketManager: WebSocketManager? = null
+class WebSocketWorker : Service() {
     private lateinit var appPreferencesRepository: AppPreferencesRepository
     private var webSocketJob: Job? = null
 
-    @OptIn(ExperimentalSettingsApi::class)
+    private lateinit var webSocketService: WebSocketService
+
+    private var isConnecting = false
+
     override fun onCreate() {
         super.onCreate()
+        Log.d("WebSocketService", "onCreate called")
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
         }
-
+        webSocketService = AndroidWebSocketService()
         startForegroundService()
-        webSocketManager = WebSocketManager.getInstance()
         appPreferencesRepository = get()
-        observeQrCodeAndConnect()
     }
 
+//    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+//        Log.d("WebSocketService", "onStartCommand called")
+//        observeQrCodeAndConnect()
+//        return START_NOT_STICKY
+//    }
+
     private fun observeQrCodeAndConnect() {
-        webSocketJob?.cancel() // Остановим предыдущее подключение
+        Log.d("AndroidWebSocket", "connectToQrCode")
+        webSocketJob?.cancel()
         webSocketJob = CoroutineScope(Dispatchers.IO).launch {
             appPreferencesRepository.getQrCode()
-                .filterNotNull() // Пропускаем null-значения
+                .filterNotNull()
                 .collect { qrCode ->
+                    if (isConnecting) {
+                        Napier.w(tag = "AndroidWebSocket", message = "Already connecting, skipping")
+                        return@collect
+                    }
+                    isConnecting = true
+
                     connectToWebSocket(qrCode)
                 }
         }
     }
 
     private fun connectToWebSocket(qrCode: String) {
+        Napier.d(tag = "AndroidWebSocket", message = "connectToQrCode")
         CoroutineScope(Dispatchers.IO).launch {
-            webSocketManager?.disconnect() // Отключаем старое соединение (если есть)
-            delay(1000) // Даем небольшую задержку перед новым подключением
-            webSocketManager?.connect(qrCode)
+            webSocketService.connect(qrCode)
         }
     }
 
@@ -71,7 +83,6 @@ class WebSocketService : Service() {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
 
-        //val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(1, notification)
     }
 
@@ -104,20 +115,36 @@ class WebSocketService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        Log.d("WebSocketService", "onDestroy called")
         webSocketJob?.cancel()
-        CoroutineScope(Dispatchers.IO).launch {
-            webSocketManager?.disconnect()
-            updateNotification("MARTIN Catalog", "Соединение разорвано")
-        }
+        webSocketService.disconnect()
+        updateNotification("MARTIN Catalog", "Соединение разорвано")
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     companion object {
         fun start(context: Context) {
-            val intent = Intent(context, WebSocketService::class.java)
+            val intent = Intent(context, WebSocketWorker::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+        }
+
+        fun stop(context: Context) {
+            val intent = Intent(context, WebSocketWorker::class.java)
+            context.stopService(intent)
+        }
+
+        fun restart(context: Context, url: String) {
+            stop(context) // Остановить текущий экземпляр сервиса
+            val intent = Intent(context, WebSocketWorker::class.java).apply {
+                putExtra("url", url) // Передать URL
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent) // Перезапуск сервиса
             } else {
                 context.startService(intent)
             }

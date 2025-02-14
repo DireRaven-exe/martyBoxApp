@@ -1,4 +1,4 @@
-package com.jetbrains.kmpapp.ui.screens.main.views
+package com.jetbrains.kmpapp.ui.components.views
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,21 +10,44 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.jetbrains.kmpapp.domain.models.SongInQueue
+import com.jetbrains.kmpapp.domain.models.generateUniqueKey
 import com.jetbrains.kmpapp.feature.commands.CommandHandler
 import com.jetbrains.kmpapp.ui.components.content.SongCard
+import com.jetbrains.kmpapp.ui.screens.main.views.EmptyListView
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
+import com.jetbrains.kmpapp.utils.MainUiState
 
 @Composable
 fun QueueClubContentView(
-    currentPlaylist: List<SongInQueue>,
+    uiState: MainUiState,
     commandHandler: CommandHandler,
     lazyListState: LazyListState,
     contentPadding: PaddingValues,
 ) {
+    // Используем SnapshotStateList для отслеживания изменений
+    val currentPlaylist = remember { mutableStateListOf<SongInQueue>() }
+    val keyMap = remember { mutableStateMapOf<Int, String>() }
+
+    // Обновляем список только при изменении данных
+    LaunchedEffect(uiState.currentPlaylist) {
+        if (currentPlaylist != uiState.currentPlaylist) {
+            currentPlaylist.clear()
+            currentPlaylist.addAll(uiState.currentPlaylist.map { song ->
+                val existingKey = keyMap[song.id]
+                val key = existingKey ?: generateUniqueKey(song.id).also { keyMap[song.id] = it }
+                song.copy(key = key)
+            })
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -39,18 +62,19 @@ fun QueueClubContentView(
             ) {
                 itemsIndexed(
                     currentPlaylist,
-                    key = { _, item -> item.key }) { index, item ->
+                    //key = { _, item -> item.key }
+                ) { index, item ->
                     Card(
                         onClick = {
+                            // Обработка клика
                         },
                         colors = CardDefaults.cardColors(
-                            containerColor =
-                            LocalCustomColorsPalette.current.primaryBackground
+                            containerColor = LocalCustomColorsPalette.current.primaryBackground
                         ),
                         elevation = CardDefaults.cardElevation(0.dp),
                         modifier = Modifier
                     ) {
-                        SongCard(song = item,)
+                        SongCard(song = item)
                     }
                 }
             }

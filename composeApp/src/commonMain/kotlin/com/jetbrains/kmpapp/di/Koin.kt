@@ -52,6 +52,7 @@ fun commonModule() = module {
     factory { HomeViewModel(appPreferencesRepository = get()) }
     factory { MainViewModel(
         appPreferencesRepository = get(),
+        webSocketService = get()
     ) }
     factory { QrCodeViewModel(appPreferencesRepository = get()) }
 }

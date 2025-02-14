@@ -32,7 +32,6 @@ import com.jetbrains.kmpapp.ui.theme.songCardSecondaryContent
 import com.jetbrains.kmpapp.utils.MainUiState
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.artist
-import martyboxapp.composeapp.generated.resources.autoFullScreen
 import martyboxapp.composeapp.generated.resources.next
 import martyboxapp.composeapp.generated.resources.pause
 import martyboxapp.composeapp.generated.resources.singingAssessment
@@ -150,60 +149,48 @@ fun MainBottomSheetContentView(
             modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
         ) {
             Row(
-                modifier = Modifier,
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.SpaceBetween // Раздвигаем элементы
             ) {
-                Switch(
-                    checked = uiState.autoFullScreen,
-                    onCheckedChange = {
-                        commandHandler.changeAutoFullScreen(it)
-                        commandHandler.updateAutoFullScreen(it)
-                    }
-                )
-                Text(
-                    text = stringResource(Res.string.autoFullScreen),
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1
-                )
-            }
+                Row(
+                    modifier = Modifier.weight(1f), // Левый переключатель
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Switch(
+                        checked = uiState.singingAssessment,
+                        onCheckedChange = {
+                            commandHandler.changeSingingAssessment(it)
+                            commandHandler.updateSingingAssessment(it)
+                        }
+                    )
+                    Text(
+                        text = stringResource(Res.string.singingAssessment),
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1
+                    )
+                }
 
-            Row(
-                modifier = Modifier,
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Switch(
-                    checked = uiState.singingAssessment,
-                    onCheckedChange = {
-                        commandHandler.changeSingingAssessment(it)
-                        commandHandler.updateSingingAssessment(it)
-                    }
-                )
-                Text(
-                    text = stringResource(Res.string.singingAssessment),
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1
-                )
-            }
-
-            Row(
-                modifier = Modifier,
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Switch(
-                    checked = uiState.soundInPause,
-                    onCheckedChange = {
-                        commandHandler.changeSoundInPause(it)
-                        commandHandler.updateSoundInPause(it)
-                    }
-                )
-                Text(
-                    text = stringResource(Res.string.soundInPause),
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1
-                )
+                Row(
+                    modifier = Modifier.weight(1f), // Правый переключатель
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End // Выравниваем вправо
+                ) {
+                    Switch(
+                        checked = uiState.soundInPause,
+                        modifier = Modifier.padding(end = 8.dp),
+                        onCheckedChange = {
+                            commandHandler.changeSoundInPause(it)
+                            commandHandler.updateSoundInPause(it)
+                        }
+                    )
+                    Text(
+                        text = stringResource(Res.string.soundInPause),
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1
+                    )
+                }
             }
         }
     }

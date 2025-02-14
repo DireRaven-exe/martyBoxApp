@@ -58,13 +58,19 @@ fun HomeContentView(
         derivedStateOf { uiState.songs.groupBy { it.tab } }
     }
 
-    val tabNames by remember { mutableStateOf( groupedSongs.keys.toList()) }
+    val tabNames by remember(groupedSongs) {
+        derivedStateOf { groupedSongs.keys.toList() }
+    }
+
     val pagerState = rememberPagerState { tabNames.size }
 
     LaunchedEffect(selectedTabIndex) {
-        pagerState.animateScrollToPage(selectedTabIndex)
+        if (selectedTabIndex < tabNames.size) {
+            pagerState.scrollToPage(selectedTabIndex) // Убрали анимацию
+        }
     }
 
+    // Убрали второй LaunchedEffect, передав управление ViewModel
     LaunchedEffect(pagerState.currentPage) {
         selectedTabIndex = pagerState.currentPage
         commandHandler.updateSongsForTab(tabNames[selectedTabIndex])
@@ -76,18 +82,14 @@ fun HomeContentView(
             .fillMaxSize()
     ) {
         if (searchQuery.isNotBlank()) {
-            if (isFiltering.value) {
-                ProgressView(contentPadding)
-            } else {
-                if (filteredSongs.isEmpty()) {
-                    EmptyListView(contentPadding)
-                } else {
-                    SongListHomeView(
-                        songs = filteredSongs,
-                        uiState = uiState,
-                        commandHandler = commandHandler
-                    )
-                }
+            when {
+                isFiltering.value -> ProgressView(contentPadding)
+                filteredSongs.isEmpty() -> EmptyListView(contentPadding)
+                else -> SongListHomeView(
+                    songs = filteredSongs,
+                    uiState = uiState,
+                    commandHandler = commandHandler
+                )
             }
         } else {
             if (uiState.songs.isNotEmpty()) {
@@ -99,9 +101,7 @@ fun HomeContentView(
                     TabRowComponent(
                         tabNames = tabNames,
                         selectedTabIndex = selectedTabIndex,
-                        onTabSelected = { index ->
-                            selectedTabIndex = index
-                        },
+                        onTabSelected = { index -> selectedTabIndex = index },
                         onTabLongClick = { index ->
                             expandedTabIndex = index
                             expandedMenu = true
@@ -138,7 +138,8 @@ fun HomeContentView(
                         }
                     }
                 }
-            } else {
+            }
+            else {
                 EmptyListView(contentPadding)
             }
         }
@@ -157,6 +158,7 @@ fun HomeContentView(
         }
     )
 }
+
 
 @Composable
 fun PlayFolderDialog(

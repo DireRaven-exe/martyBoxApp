@@ -46,7 +46,7 @@ fun HomeScreen(
     paddingValues: PaddingValues
 ) {
     val uiState = homeViewModel.homeUiState.collectAsState().value
-    val savedQrCode = uiState.savedQrCode
+    var savedQrCode = uiState.savedQrCode
 
     LaunchedEffect(savedQrCode) {
         savedQrCode?.let {

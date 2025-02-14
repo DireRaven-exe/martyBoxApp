@@ -135,8 +135,13 @@ fun HomeTypeView(
         topBar = {
             if(isQueueOpen) {
                 QueueTopAppBar(
+                    type = uiState.serverData.type,
                     title = stringResource(Res.string.queue),
-                    onSheetQueueClose = { isQueueOpen = false }
+                    onSheetQueueClose = {
+                        isQueueOpen = false
+                        commandHandler.clearLocalQueue()
+                    },
+                    onClearQueue = { commandHandler.clearPlaylist() }
                 )
             } else {
                 MainTopAppBar(
