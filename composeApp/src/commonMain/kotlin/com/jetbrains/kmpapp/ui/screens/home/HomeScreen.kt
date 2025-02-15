@@ -18,7 +18,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +28,7 @@ import androidx.navigation.NavHostController
 import com.jetbrains.kmpapp.ui.navigation.NavigationItem
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
 import com.jetbrains.kmpapp.ui.theme.buttonAcceptDialog
+import io.github.aakira.napier.Napier
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.app_name
 import martyboxapp.composeapp.generated.resources.martinlogo
@@ -37,26 +37,21 @@ import martyboxapp.composeapp.generated.resources.scan
 import martyboxapp.composeapp.generated.resources.scanQRcode
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun HomeScreen(
     navController: NavHostController,
-    homeViewModel: HomeViewModel = koinInject(),
+    homeViewModel: HomeViewModel = koinViewModel<HomeViewModel>(),
     paddingValues: PaddingValues
 ) {
     val uiState = homeViewModel.homeUiState.collectAsState().value
     var savedQrCode = uiState.savedQrCode
 
-    LaunchedEffect(savedQrCode) {
-        savedQrCode?.let {
-            if (it.isNotEmpty()) {
-                navController.navigate(NavigationItem.Main.route)
-            }
-        }
-    }
-    if (uiState.savedQrCode.isEmpty()) {
-
+    if (savedQrCode.isNotEmpty()) {
+        Napier.d(tag = "AndroidWebSocket", message = "HomeScreen navigated to MainScreen")
+        navController.navigate(NavigationItem.Main.route)
+    } else {
         Surface {
             Box(
                 modifier = Modifier

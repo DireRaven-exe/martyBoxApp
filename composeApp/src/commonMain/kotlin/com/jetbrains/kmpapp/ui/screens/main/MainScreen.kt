@@ -48,14 +48,20 @@ import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.accept
 import martyboxapp.composeapp.generated.resources.indicateTableNumber
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun MainScreen(
     navController: NavHostController,
-    mainViewModel: MainViewModel = koinInject(),
+    mainViewModel: MainViewModel = koinViewModel<MainViewModel>(),
     paddingValues: PaddingValues
 ) {
+    //val mainViewModel = getViewModel()
+
+        Napier.d(
+        tag = "AndroidTest",
+        message = "MainScreen: $mainViewModel"
+    )
     val uiState = mainViewModel.mainUiState.collectAsState().value
     var savedTableValue by rememberSaveable { mutableStateOf(uiState.currentTable) }
     val savedQrCode = uiState.savedQrCode
@@ -71,10 +77,16 @@ fun MainScreen(
 
     // Сохраняем qrCode при первом получении
     LaunchedEffect(savedQrCode) {
-        savedQrCode.let {
+        savedQrCode.run {
             if (isReconnectAllowed) {
-                Napier.d(tag = "Websocket", message = it)
-                mainViewModel.connectToWebSocket(it)
+                Napier.d(tag = "Websocket", message = "MainScreen connecting")
+                if (isNotEmpty()) {
+                    mainViewModel.connectToWebSocket(savedQrCode)
+                    Napier.d(
+                        tag = "AndroidWebSocket",
+                        message = "MainScreen: $mainViewModel to $this"
+                    )
+                }
             }
         }
     }

@@ -29,14 +29,14 @@ import martyboxapp.composeapp.generated.resources.openSettings
 import martyboxapp.composeapp.generated.resources.requestPermission
 import martyboxapp.composeapp.generated.resources.topBarScanQRcode
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import org.publicvalue.multiplatform.qrcode.CodeType
 import org.publicvalue.multiplatform.qrcode.ScannerWithPermissions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QrCodeScreen(
-    qrCodeViewModel: QrCodeViewModel = koinInject(),
+    qrCodeViewModel: QrCodeViewModel = koinViewModel<QrCodeViewModel>(),
     navController: NavHostController,
     paddingValues: PaddingValues,
 ) {
@@ -61,7 +61,10 @@ fun QrCodeScreen(
             modifier = Modifier.padding(0.dp),
             onScanned = {
                 try {
-                    navController.navigate(NavigationItem.Main.route)
+                    if (navController.currentDestination?.route != NavigationItem.Main.route) {
+                        Napier.d(tag = "AndroidWebSocket", message = "QrCodeScreen navigated to MainScreen")
+                        navController.navigate(NavigationItem.Main.route)
+                    }
                     qrCodeViewModel.onQrCodeDetected(it)
                 } catch (e: Exception) {
                     // Обработка исключения

@@ -47,6 +47,7 @@ class MainViewModel(
     val connectionState: StateFlow<WebSocketConnectionState> = _connectionState
 
     init {
+        Napier.e(tag = "AndroidWebSocket", message = "MainViewModel - Init - $this")
         observeWebSocket()
         getCurrentTable()
         getQrCode()
@@ -55,7 +56,7 @@ class MainViewModel(
     private fun observeWebSocket() {
         // Подписка на состояние подключения
         viewModelScope.launch {
-            webSocketService.observeConnectionState().collect { state ->
+            this@MainViewModel.webSocketService.observeConnectionState().collect { state ->
                 _connectionState.value = state
                 if (state == WebSocketConnectionState.Connected) {
                     Napier.e(tag = "AndroidWebSocket", message = "count = $$$")
@@ -67,7 +68,7 @@ class MainViewModel(
 
         // Подписка на получение сообщений
         viewModelScope.launch {
-            webSocketService.observeMessages().collect { message ->
+            this@MainViewModel.webSocketService.observeMessages().collect { message ->
                 onReceive(message)  // Вызываем onReceived при получении сообщения
                 _messages.value += message
             }
@@ -76,8 +77,9 @@ class MainViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        Napier.e(tag = "MAINVIEWMODEL", message = "onCleared")
+        Napier.e(tag = "MAINVIEWMODEL", message = "onCleared mainViewModel: $this")
         _uiState.value = MainUiState()
+        disconnect()
     }
 
     override fun updateSongsForTab(tabName: String) {
@@ -135,7 +137,7 @@ class MainViewModel(
     }
 
     fun disconnect() {
-        webSocketService.disconnect()
+        this@MainViewModel.webSocketService.disconnect()
     }
 
     fun getCurrentTable() = viewModelScope.launch(coroutineExceptionHandler) {

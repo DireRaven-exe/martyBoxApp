@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
@@ -24,6 +25,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.internal.SynchronizedObject
+import kotlinx.coroutines.internal.synchronized
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -34,6 +37,9 @@ import kotlin.time.Duration.Companion.milliseconds
 class KtorWebsocketClient {
     private var _url: String = ""
     private var listener: WebsocketEvents? = null
+
+    @OptIn(InternalCoroutinesApi::class)
+    private val lock = SynchronizedObject()
 
     private val client = HttpClient {
         install(Logging) {
@@ -59,6 +65,7 @@ class KtorWebsocketClient {
     @Volatile private var isConnected = false // Флаг подключения
     private var isConnecting = false // Флаг состояния подключения
 
+    @OptIn(InternalCoroutinesApi::class)
     suspend fun connect() {
         reset()
         if (_url.isEmpty()) {
@@ -66,13 +73,13 @@ class KtorWebsocketClient {
             return
         }
 
-        if (isStopped || isConnected || isConnecting) {
-            // Если уже подключен, подключение выполняется, или соединение остановлено, выходим
-            Napier.i(tag = TAG, message = "Skipping connect: isStopped=$isStopped, isConnected=$isConnected, isConnecting=$isConnecting")
-            return
+        synchronized(lock) {
+            if (isStopped || isConnected || isConnecting) {
+                Napier.i(tag = TAG, message = "Skipping connect: isStopped=$isStopped, isConnected=$isConnected, isConnecting=$isConnecting")
+                return
+            }
+            isConnecting = true // Устанавливаем флаг подключения
         }
-
-        isConnecting = true // Помечаем, что началось подключение
 
         try {
             session = client.webSocketSession(_url)
@@ -126,7 +133,9 @@ class KtorWebsocketClient {
                 listener?.onDisconnected("Max reconnect attempts exceeded.")
             }
         } finally {
-            isConnecting = false // Сбрасываем флаг подключения
+            synchronized(lock) {
+                isConnecting = false // Сбрасываем флаг подключения в любом случае
+            }
         }
     }
 

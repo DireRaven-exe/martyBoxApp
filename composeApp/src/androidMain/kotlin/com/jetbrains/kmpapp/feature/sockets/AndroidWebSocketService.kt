@@ -29,18 +29,23 @@ class AndroidWebSocketService : WebSocketService {
             }
 
             override fun onConnected() {
-                Napier.d(tag = "AndroidWebSocket", message = "onConnected function = $this")
                 if (connectionStateFlow.value != WebSocketConnectionState.Connected) {
                     scope.launch {
+                        Napier.d(tag = "AndroidWebSocket", message = "onConnected function = $this")
                         connectionStateFlow.emit(WebSocketConnectionState.Connected)
                     }
                 }
             }
 
             override fun onDisconnected(reason: String) {
-                Napier.d(tag = "AndroidWebSocket", message = "onDisconnected function")
-                scope.launch {
-                    connectionStateFlow.emit(WebSocketConnectionState.Disconnected)
+//                scope.launch {
+//                    connectionStateFlow.emit(WebSocketConnectionState.Disconnected)
+//                }
+                if (connectionStateFlow.value != WebSocketConnectionState.Disconnected) {
+                    scope.launch {
+                        Napier.d(tag = "AndroidWebSocket", message = "onDisconnected function = $this")
+                        connectionStateFlow.emit(WebSocketConnectionState.Disconnected)
+                    }
                 }
             }
 
