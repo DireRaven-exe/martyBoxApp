@@ -1,5 +1,6 @@
 package com.jetbrains.kmpapp.feature.sockets
 
+import android.util.Log
 import com.jetbrains.kmpapp.data.sockets.KtorWebsocketClient
 import com.jetbrains.kmpapp.data.sockets.WebSocketConnectionState
 import com.jetbrains.kmpapp.data.sockets.WebSocketService
@@ -59,15 +60,20 @@ class AndroidWebSocketService : WebSocketService {
     }
 
     override fun connect(url: String) {
+
         scope.launch {
             //connectionStateFlow.emit(WebSocketConnectionState.Disconnected) // Сбрасываем состояние перед подключением
             try {
                 ktorClient.updateKtorWebsocketClient(url)
                 ktorClient.connect()
+
             } catch (e: Exception) {
                 connectionStateFlow.emit(WebSocketConnectionState.Error("Connection failed: ${e.message}"))
+                Log.d("AndroidWebSocket", "Connection failed: ${e.message}")
+
             }
         }
+//        Napier.i(tag = "AndroidWebSocket", message = "connectionStatus in begin: ${connectionStateFlow.value}")
     }
 
     override fun disconnect() {

@@ -141,14 +141,14 @@ class KtorWebsocketClient {
 
 
     private fun reconnect() {
-        if (isStopped || isConnected || reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        if (isStopped || reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
             Napier.e(tag = TAG, message = "Max reconnect attempts exceeded. Stopping client.")
             Napier.d(tag = "WebSocket", message = "ABOBA")
             scope.launch { stop() }
             return
         }
 
-        //reset()
+        reset()
 
         val delayTime = (RECONNECT_DELAY * (reconnectAttempts + 1)).coerceAtMost(5_000L)
 
@@ -184,11 +184,11 @@ class KtorWebsocketClient {
         }
         session = null
 
-        try {
-            client.close()
-        } catch (e: Exception) {
-            Napier.e(tag = TAG, message = "Error closing client: ${e.message}")
-        }
+//        try {
+//            client.close()
+//        } catch (e: Exception) {
+//            Napier.e(tag = TAG, message = "Error closing client: ${e.message}")
+//        }
 
         Napier.d(tag = TAG, message = "WebSocket client stopped.")
         listener?.onDisconnected("Connection lost")

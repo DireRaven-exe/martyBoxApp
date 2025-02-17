@@ -18,26 +18,17 @@ fun Navigation(navController: NavHostController, paddingValues: PaddingValues) {
 //    val qrCodeScreen = QrCodeScreen(navController = navController, paddingValues = paddingValues)
 
     NavHost(navController = navController, startDestination = NavigationItem.Home.route) {
-        composable(NavigationItem.QRCode.route) {
+        composable(route = NavigationItem.QRCode.route) {
             Napier.d(tag = "AndroidWebSocket", message = "QrCodeScreen open from ${navController.currentDestination?.route}")
-            //if (navController.currentDestination?.route == NavigationItem.QRCode.route) {
-                //qrCodeScreen
             QrCodeScreen(navController = navController, paddingValues = paddingValues)
-            //}
         }
-        composable(NavigationItem.Home.route) {
+        composable(route = NavigationItem.Home.route) {
             Napier.d(tag = "AndroidWebSocket", message = "HomeScreen open from ${navController.currentDestination?.route}")
-            //if (navController.currentDestination?.route == NavigationItem.Home.route) {
-                //homeScreen
-                HomeScreen(navController = navController, paddingValues = paddingValues)
-            //}
+            HomeScreen(navController = navController, paddingValues = paddingValues)
         }
-        composable(NavigationItem.Main.route) {
+        composable(route = NavigationItem.Main.route) {
             Napier.d(tag = "AndroidWebSocket", message = "MainScreen open from ${navController.previousBackStackEntry?.destination?.route}")
-            //if (navController.currentDestination?.route != NavigationItem.Main.route) {
-                //mainScreen
-                MainScreen(navController = navController, paddingValues = paddingValues)
-            //}
+            MainScreen(navController = navController, paddingValues = paddingValues)
         }
     }
 }

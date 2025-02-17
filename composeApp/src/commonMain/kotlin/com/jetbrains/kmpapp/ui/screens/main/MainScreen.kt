@@ -44,6 +44,7 @@ import com.jetbrains.kmpapp.ui.screens.main.views.HomeTypeView
 import com.jetbrains.kmpapp.ui.theme.buttonAcceptDialog
 import com.jetbrains.kmpapp.utils.Constants
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.delay
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.accept
 import martyboxapp.composeapp.generated.resources.indicateTableNumber
@@ -105,12 +106,13 @@ fun MainScreen(
 //    LaunchedEffect(uiState.isServerConnected) {
 //        if (!uiState.isServerConnected && navController.currentBackStackEntry?.destination?.route != NavigationItem.Home.route) {
 //            showDisconnectedDialog = true
-//        }
+//        } else showDisconnectedDialog = false
 //    }
 
     LaunchedEffect(mainViewModel.connectionState) {
         mainViewModel.connectionState.collect { state ->
             if (state == WebSocketConnectionState.Disconnected) {
+                delay(2000)
                 showDisconnectedDialog = true
             } else {
                 showDisconnectedDialog = false
