@@ -11,8 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -120,7 +119,7 @@ fun SongCard(
     isPlaying: Boolean,
     isCurrentSong: Boolean,
     onPlayClick: (SongInQueue) -> Unit,
-    modifier: Modifier = Modifier
+    onRemoveSong: (SongInQueue) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -180,21 +179,14 @@ fun SongCard(
             }
 
             IconButton(
-                onClick = { /* handle up arrow click */ },
-                modifier = modifier.align(Alignment.CenterVertically)
+                onClick = { onRemoveSong(song) },
+                modifier = Modifier.align(Alignment.CenterVertically)
             ) {
-                Row {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Move Up",
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowUp,
-                        contentDescription = "Move Down",
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Remove song",
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
     }

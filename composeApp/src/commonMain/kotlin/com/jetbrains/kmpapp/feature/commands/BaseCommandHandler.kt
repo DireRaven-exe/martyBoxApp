@@ -10,6 +10,10 @@ abstract class BaseCommandHandler(
         viewModel.sendCommand(type, value, table)
     }
 
+    fun clearQueue() {
+        sendCommand(type = 24, value = "", table = 0)
+    }
+
     fun removeSoundFromPlaylist(id: Int) {
         sendCommand(
             type = 25,

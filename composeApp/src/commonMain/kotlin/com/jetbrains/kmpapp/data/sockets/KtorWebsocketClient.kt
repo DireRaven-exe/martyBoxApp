@@ -1,6 +1,5 @@
 package com.jetbrains.kmpapp.data.sockets
 
-import com.jetbrains.kmpapp.di.AppStateProvider
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
@@ -17,22 +16,30 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.internal.SynchronizedObject
+import kotlinx.coroutines.internal.synchronized
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import kotlinx.io.IOException
+import kotlin.concurrent.Volatile
 import kotlin.time.Duration.Companion.milliseconds
 
 class KtorWebsocketClient {
     private var _url: String = ""
     private var listener: WebsocketEvents? = null
-    private var _appStateProvider: AppStateProvider? = null
+
+    @OptIn(InternalCoroutinesApi::class)
+    private val lock = SynchronizedObject()
 
     private val client = HttpClient {
         install(Logging) {
@@ -55,76 +62,99 @@ class KtorWebsocketClient {
     private var session: WebSocketSession? = null
     private var reconnectAttempts = 0
     private var isStopped = false
+    @Volatile private var isConnected = false // Флаг подключения
+    private var isConnecting = false // Флаг состояния подключения
 
+    @OptIn(InternalCoroutinesApi::class)
     suspend fun connect() {
+        reset()
         if (_url.isEmpty()) {
             Napier.e(tag = TAG, message = "WebSocket URL is empty, skipping connection.")
             return
         }
 
-        if (isStopped) return
+        synchronized(lock) {
+            if (isStopped || isConnected || isConnecting) {
+                Napier.i(tag = TAG, message = "Skipping connect: isStopped=$isStopped, isConnected=$isConnected, isConnecting=$isConnecting")
+                return
+            }
+            isConnecting = true // Устанавливаем флаг подключения
+        }
 
         try {
-            Napier.d(tag = TAG, message = "Connecting to websocket at $_url...")
-
             session = client.webSocketSession(_url)
-
+            isConnected = true
             reconnectAttempts = 0
             listener?.onConnected()
 
             Napier.i(tag = TAG, message = "Connected to websocket at $_url")
 
+            // Стартуем задачу для пинга
             scope.launch {
                 while (!isStopped) {
                     if (session?.isActive == true) {
                         sendPing()
                     } else {
-                        connect()
+                        Napier.e(tag = TAG, message = "Session not active, reconnecting...")
+                        reconnect()
                     }
                     delay(PING_INTERVAL)
                 }
             }
 
+            // Читаем входящие сообщения
             session!!.incoming
                 .receiveAsFlow()
                 .filterIsInstance<Frame.Text>()
-                .filterNotNull()
+                .catch { e ->
+                    Napier.e(tag = TAG, message = "Error receiving message: ${e.message}")
+                    when (e) {
+                        is IOException, is ClosedReceiveChannelException -> {
+                            Napier.e(tag = TAG, message = "Connection reset detected, reconnecting...")
+                            reconnect()
+                        }
+                        else -> throw e
+                    }
+                }
                 .collect { data ->
                     val message = data.readText()
                     listener?.onReceive(message)
-
                     Napier.i(tag = TAG, message = "Received message: success")
                 }
         } catch (e: Exception) {
-            Napier.e(tag = TAG, message = "Error: ${e.message}")
-            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+            Napier.e(tag = TAG, message = "Error during connection: ${e.message}")
+            isConnected = false
+            isConnecting = false
+
+            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS && !isStopped) {
                 reconnect()
             } else {
                 Napier.d(tag = TAG, message = "Max reconnect attempts exceeded. Reconnection stopped.")
                 listener?.onDisconnected("Max reconnect attempts exceeded.")
             }
+        } finally {
+            synchronized(lock) {
+                isConnecting = false // Сбрасываем флаг подключения в любом случае
+            }
         }
     }
 
+
     private fun reconnect() {
-        if (isStopped) {
-            Napier.d(tag = TAG, message = "Reconnection aborted: client is stopped.")
-            return
-        }
-
-        job?.cancel()
-
-        if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-            Napier.e(tag = TAG, message = "Max reconnect attempts exceeded. Server marked as disconnected.")
-            listener?.onDisconnected("Max reconnect attempts exceeded.")
+        if (isStopped || reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+            Napier.e(tag = TAG, message = "Max reconnect attempts exceeded. Stopping client.")
+            Napier.d(tag = "WebSocket", message = "ABOBA")
             scope.launch { stop() }
             return
         }
 
+        reset()
+
         val delayTime = (RECONNECT_DELAY * (reconnectAttempts + 1)).coerceAtMost(5_000L)
 
-        Napier.d(tag = TAG, message = "Reconnecting to WebSocket in $delayTime ms...")
+        Napier.d(tag = TAG, message = "Reconnecting in $delayTime ms... (Attempt ${reconnectAttempts + 1})")
 
+        job?.cancel()
         job = scope.launch {
             delay(delayTime)
             if (isStopped) return@launch
@@ -133,9 +163,7 @@ class KtorWebsocketClient {
             try {
                 connect()
             } catch (e: Exception) {
-                // Catch any other connection issues (e.g., network, server down)
                 Napier.e(tag = TAG, message = "Reconnection failed: ${e.message}")
-                listener?.onDisconnected("Reconnection failed: ${e.message}")
             }
         }
     }
@@ -144,18 +172,30 @@ class KtorWebsocketClient {
         Napier.d(tag = TAG, message = "Stopping WebSocket client...")
 
         isStopped = true
+        isConnecting = false
+        isConnected = false
         job?.cancel()
         scope.coroutineContext.cancelChildren()
 
-        session?.close()
+        try {
+            session?.close()
+        } catch (e: Exception) {
+            Napier.e(tag = TAG, message = "Error closing session: ${e.message}")
+        }
         session = null
+
+//        try {
+//            client.close()
+//        } catch (e: Exception) {
+//            Napier.e(tag = TAG, message = "Error closing client: ${e.message}")
+//        }
 
         Napier.d(tag = TAG, message = "WebSocket client stopped.")
         listener?.onDisconnected("Connection lost")
     }
 
     suspend fun send(message: String) {
-        if (isStopped) return
+        if (isStopped || session?.isActive != true) return
 
         Napier.d(tag = TAG, message = "Sending message: $message")
 
@@ -163,19 +203,15 @@ class KtorWebsocketClient {
             session?.send(Frame.Text(message))
             Napier.d(tag = TAG, message = "$message sent")
         } catch (e: Exception) {
-            Napier.e(tag = TAG, message = "Error sending ping: ${e.message}")
-            stop()
+            Napier.e(tag = TAG, message = "Error sending message: ${e.message}")
+            reconnect()
         }
     }
 
-    fun reset() {
-        isStopped = false
-        reconnectAttempts = 0
-        session = null
-    }
+
 
     private suspend fun sendPing() {
-        if (isStopped) return
+        if (isStopped || session?.isActive != true) return
 
         try {
             session?.send(Frame.Text("ping"))
@@ -187,9 +223,15 @@ class KtorWebsocketClient {
         }
     }
 
-    fun updateKtorWebsocketClient(url: String, appStateProvider: AppStateProvider) {
+    fun reset() {
+        isStopped = false
+        isConnected = false
+        isConnecting = false
+        reconnectAttempts = 0
+        session = null
+    }
+    fun updateKtorWebsocketClient(url: String) {
         _url = url
-        _appStateProvider = appStateProvider
     }
 
     fun updateCallbacks(listener: WebsocketEvents) {
@@ -207,7 +249,7 @@ class KtorWebsocketClient {
     companion object {
         private const val RECONNECT_DELAY = 3_000L
         private const val PING_INTERVAL = 10_000L
-        private const val MAX_RECONNECT_ATTEMPTS = 2
+        private const val MAX_RECONNECT_ATTEMPTS = 3
         private const val TAG = "EVChargingWebSocketClient"
     }
 }

@@ -11,17 +11,13 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.jetbrains.kmpapp.domain.models.SongInQueue
 import com.jetbrains.kmpapp.feature.commands.CommandHandler
 import com.jetbrains.kmpapp.feature.vibration.HapticFeedbackType
 import com.jetbrains.kmpapp.feature.vibration.provideHapticFeedback
-import com.jetbrains.kmpapp.ui.components.content.ContextMenu
 import com.jetbrains.kmpapp.ui.components.content.SongCard
 import com.jetbrains.kmpapp.ui.screens.main.views.EmptyListView
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
@@ -38,18 +34,22 @@ fun QueueHomeContentView(
     contentPadding: PaddingValues,
 ) {
 
+    val keyMap = remember { mutableStateMapOf<Int, String>() }
+//    val currentPlaylist = remember(uiState.currentPlaylist) {
+//        uiState.currentPlaylist.map { song ->
+//            val existingKey = keyMap[song.id]
+//            val key = existingKey ?: generateUniqueKey(song.id).also { keyMap[song.id] = it }
+//            song.copy(key = key)
+//        }
+//    }
+
     val currentPlaylist = remember(uiState.currentPlaylist) { uiState.currentPlaylist }
     val hapticFeedback = provideHapticFeedback()
-
     val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
         commandHandler.moveOn(from.index, to.index)
         commandHandler.moveSongInQueue(from.index, to.index)
         hapticFeedback.performHapticFeedback(HapticFeedbackType.Heavy)
     }
-
-    var selectedSong by remember { mutableStateOf<SongInQueue?>(null) }
-    var selectedIndex by remember { mutableStateOf<Int>(-1) }
-    var showContextMenu by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -72,11 +72,6 @@ fun QueueHomeContentView(
                         val interactionSource = remember { MutableInteractionSource() }
 
                         Card(
-                            onClick = {
-                                selectedSong = item
-                                selectedIndex = index
-                                showContextMenu = true
-                            },
                             colors = CardDefaults.cardColors(
                                 containerColor = if (isDragging) {
                                     LocalCustomColorsPalette.current.cardCurrentSongBackground
@@ -85,17 +80,8 @@ fun QueueHomeContentView(
                                 }
                             ),
                             elevation = CardDefaults.cardElevation(0.dp),
-                            modifier = Modifier,
-                            interactionSource = interactionSource,
-                        ) {
-                            SongCard(
-                                song = item,
-                                isPlaying = false,
-                                isCurrentSong = false,
-                                onPlayClick = {
-                                    commandHandler.playSoundInPlaylist(index, song = item)
-                                },
-                                modifier = Modifier.draggableHandle(
+                            modifier = Modifier
+                                .longPressDraggableHandle(
                                     onDragStarted = {
                                         hapticFeedback.performHapticFeedback(
                                             HapticFeedbackType.Heavy
@@ -108,6 +94,18 @@ fun QueueHomeContentView(
                                     },
                                     interactionSource = interactionSource
                                 ),
+                        ) {
+                            SongCard(
+                                song = item,
+                                isPlaying = false,
+                                isCurrentSong = false,
+                                onPlayClick = {
+                                    commandHandler.playSoundInPlaylist(index, song = item)
+                                },
+                                onRemoveSong = { song ->
+                                    commandHandler.removeSong(song)
+                                    commandHandler.removeSoundFromPlaylist(index)
+                                },
                             )
 
                         }
@@ -118,20 +116,19 @@ fun QueueHomeContentView(
             EmptyListView(paddingValues)
         }
     }
-
-    if (showContextMenu && selectedSong != null) {
-        ContextMenu(
-            onDismiss = { showContextMenu = false },
-            onDelete = {
-                commandHandler.removeSong(selectedSong!!)
-                commandHandler.removeSoundFromPlaylist(currentPlaylist.indexOf(selectedSong))
-                showContextMenu = false
-            },
-            onSetPitch = { newPitch ->
-                commandHandler.setPitchToFile(selectedIndex, newPitch)
-                showContextMenu = false
-            },
-        )
-    }
-
 }
+//    if (showContextMenu && selectedSong != null) {
+//        ContextMenu(
+//            onDismiss = { showContextMenu = false },
+//            onDelete = {
+//                commandHandler.removeSong(selectedSong!!)
+//                commandHandler.removeSoundFromPlaylist(currentPlaylist.indexOf(selectedSong))
+//                showContextMenu = false
+//            },
+//            onSetPitch = { newPitch ->
+//                commandHandler.setPitchToFile(selectedIndex, newPitch)
+//                showContextMenu = false
+//            },
+//        )
+//    }
+//}

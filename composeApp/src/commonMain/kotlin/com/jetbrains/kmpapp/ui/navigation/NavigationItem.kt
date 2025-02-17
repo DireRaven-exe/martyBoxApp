@@ -12,3 +12,8 @@ sealed class NavigationItem(
     object QRCode : NavigationItem("/qr_code_screen", "QR", null)
     object Main : NavigationItem("/main_screen", "Main", null)
 }
+
+
+//internal val home_route = "/home_screen"
+//internal val qr_route = home_route + "/qr_code_screen"
+//internal val main_from_home_route = home_route + "/main_screen"

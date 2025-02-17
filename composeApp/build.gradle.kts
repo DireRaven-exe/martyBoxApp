@@ -90,6 +90,7 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
+            implementation("io.insert-koin:koin-androidx-compose:3.4.0")
             implementation(libs.navigation.compose)
             implementation(libs.gson)
 

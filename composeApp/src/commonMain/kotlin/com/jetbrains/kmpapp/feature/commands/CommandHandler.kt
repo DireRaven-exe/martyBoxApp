@@ -14,6 +14,7 @@ class CommandHandler(viewModel: MainViewModel) : BaseCommandHandler(viewModel) {
             value = "$id",
             table = 0
         )
+        viewModel.updateQueue()
     }
 
     fun appendMedia(song: Song) {
@@ -35,6 +36,7 @@ class CommandHandler(viewModel: MainViewModel) : BaseCommandHandler(viewModel) {
             value = "{\"tab\": \"${song.tab}\", \"id\": ${song.id}}",
             table = 0
         )
+        viewModel.updateQueue()
         //}
     }
 
@@ -92,5 +94,14 @@ class CommandHandler(viewModel: MainViewModel) : BaseCommandHandler(viewModel) {
 
     fun updateQueue() {
         viewModel.updateQueue()
+    }
+
+    fun clearPlaylist() {
+        viewModel.clearQueue()
+        clearQueue()
+    }
+
+    fun clearLocalQueue() {
+        viewModel.clearQueue()
     }
 }

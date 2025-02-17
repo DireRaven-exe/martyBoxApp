@@ -25,7 +25,7 @@
         android:usesCleartextTraffic="true">
 
         <service
-            android:name=".feature.sockets.WebSocketService"
+            android:name=".feature.sockets.WebSocketWorker"
             android:foregroundServiceType="dataSync"
             android:exported="false"
             android:stopWithTask="false"
