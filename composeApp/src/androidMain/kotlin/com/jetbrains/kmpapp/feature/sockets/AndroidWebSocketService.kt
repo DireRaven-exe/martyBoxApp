@@ -54,6 +54,7 @@ class AndroidWebSocketService : WebSocketService {
                 scope.launch {
                     // Логика обработки ping (например, логирование или отправка pong-сообщения)
                     println("Ping received from server")
+                    
                 }
             }
         })

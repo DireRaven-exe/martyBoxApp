@@ -1,4 +1,4 @@
-package com.jetbrains.kmpapp.ui.components.views
+package com.jetbrains.kmpapp.ui.components.views.club
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,7 +21,7 @@ import com.jetbrains.kmpapp.domain.models.SongInQueue
 import com.jetbrains.kmpapp.domain.models.generateUniqueKey
 import com.jetbrains.kmpapp.feature.commands.CommandHandler
 import com.jetbrains.kmpapp.ui.components.content.SongCard
-import com.jetbrains.kmpapp.ui.screens.main.views.EmptyListView
+import com.jetbrains.kmpapp.ui.components.views.EmptyListView
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
 import com.jetbrains.kmpapp.utils.MainUiState
 

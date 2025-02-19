@@ -1,4 +1,4 @@
-package com.jetbrains.kmpapp.ui.components.views
+package com.jetbrains.kmpapp.ui.components.views.home
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -35,7 +35,8 @@ import androidx.compose.ui.unit.dp
 import com.jetbrains.kmpapp.domain.models.Song
 import com.jetbrains.kmpapp.feature.commands.CommandHandler
 import com.jetbrains.kmpapp.ui.components.content.TabRowComponent
-import com.jetbrains.kmpapp.ui.screens.main.views.EmptyListView
+import com.jetbrains.kmpapp.ui.components.views.EmptyListView
+import com.jetbrains.kmpapp.ui.components.views.ProgressView
 import com.jetbrains.kmpapp.ui.theme.buttonAcceptDialog
 import com.jetbrains.kmpapp.ui.theme.buttonDismissDialog
 import com.jetbrains.kmpapp.utils.MainUiState

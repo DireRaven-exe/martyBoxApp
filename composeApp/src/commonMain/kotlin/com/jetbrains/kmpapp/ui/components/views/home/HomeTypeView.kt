@@ -1,4 +1,4 @@
-package com.jetbrains.kmpapp.ui.screens.main.views
+package com.jetbrains.kmpapp.ui.components.views.home
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
@@ -28,9 +28,6 @@ import androidx.compose.ui.unit.dp
 import com.jetbrains.kmpapp.feature.commands.CommandHandler
 import com.jetbrains.kmpapp.ui.components.content.MainTopAppBar
 import com.jetbrains.kmpapp.ui.components.content.QueueTopAppBar
-import com.jetbrains.kmpapp.ui.components.views.HomeContentView
-import com.jetbrains.kmpapp.ui.components.views.MainBottomSheetContentView
-import com.jetbrains.kmpapp.ui.components.views.QueueHomeContentView
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
 import com.jetbrains.kmpapp.utils.MainUiState
 import kotlinx.coroutines.Dispatchers

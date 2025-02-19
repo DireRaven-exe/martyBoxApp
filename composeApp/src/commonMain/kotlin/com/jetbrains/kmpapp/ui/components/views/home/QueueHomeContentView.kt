@@ -1,4 +1,4 @@
-package com.jetbrains.kmpapp.ui.components.views
+package com.jetbrains.kmpapp.ui.components.views.home
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
@@ -19,7 +19,7 @@ import com.jetbrains.kmpapp.feature.commands.CommandHandler
 import com.jetbrains.kmpapp.feature.vibration.HapticFeedbackType
 import com.jetbrains.kmpapp.feature.vibration.provideHapticFeedback
 import com.jetbrains.kmpapp.ui.components.content.SongCard
-import com.jetbrains.kmpapp.ui.screens.main.views.EmptyListView
+import com.jetbrains.kmpapp.ui.components.views.EmptyListView
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
 import com.jetbrains.kmpapp.utils.MainUiState
 import sh.calvin.reorderable.ReorderableItem

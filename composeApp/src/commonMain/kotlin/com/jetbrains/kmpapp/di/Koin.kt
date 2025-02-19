@@ -5,6 +5,7 @@ package com.jetbrains.kmpapp.di
 import com.jetbrains.kmpapp.data.datasources.AppPreferencesRepositoryImpl
 import com.jetbrains.kmpapp.data.sockets.KtorWebsocketClient
 import com.jetbrains.kmpapp.feature.datastore.AppPreferencesRepository
+import com.jetbrains.kmpapp.ui.screens.demo.DemoViewModel
 import com.jetbrains.kmpapp.ui.screens.home.HomeViewModel
 import com.jetbrains.kmpapp.ui.screens.main.MainViewModel
 import com.jetbrains.kmpapp.ui.screens.qr.QrCodeViewModel
@@ -48,15 +49,15 @@ fun commonModule() = module {
         val settings = get<ObservableSettings>()
         AppPreferencesRepositoryImpl(observableSettings = settings)
     }
-    Napier.e(tag = "AndroidTest", message = "Init common module")
     viewModel { HomeViewModel(get()) }
     viewModel {
-
         val mainViewModel = MainViewModel(get(), get())
         Napier.e(tag = "AndroidTest", message = "MainViewModel $mainViewModel")
         mainViewModel
     }
     viewModel { QrCodeViewModel(get()) }
+
+    viewModel { DemoViewModel(get()) }
 }
 
 fun initKoin(appDeclaration: KoinAppDeclaration = {}) =

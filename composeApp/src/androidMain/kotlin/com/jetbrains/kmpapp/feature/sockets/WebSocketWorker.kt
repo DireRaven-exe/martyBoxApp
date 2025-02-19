@@ -89,7 +89,7 @@ class WebSocketWorker : Service() {
     private fun startForegroundService() {
         val notification = NotificationCompat.Builder(this, "WebSocketChannel")
             .setContentTitle("MARTIN Catalog")
-            .setContentText("Подключён к Martin Profession Karaoke System")
+            .setContentText("Инициализация выполнена")
             .setSmallIcon(R.drawable.notifications)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()

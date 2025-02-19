@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.jetbrains.kmpapp.ui.navigation.NavigationItem
+import com.jetbrains.kmpapp.utils.Constants.KEY_DEMO_CODE
 import io.github.aakira.napier.Napier
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.openSettings
@@ -61,11 +62,18 @@ fun QrCodeScreen(
             modifier = Modifier.padding(0.dp),
             onScanned = {
                 try {
-                    if (navController.currentDestination?.route != NavigationItem.Main.route) {
-                        Napier.d(tag = "AndroidWebSocket", message = "QrCodeScreen navigated to MainScreen")
-                        navController.navigate(NavigationItem.Main.route)
+                    if (it == KEY_DEMO_CODE) {
+                        navController.navigate(NavigationItem.Demo.route)
+                    } else {
+                        if (navController.currentDestination?.route != NavigationItem.Main.route) {
+                            Napier.d(
+                                tag = "AndroidWebSocket",
+                                message = "QrCodeScreen navigated to MainScreen"
+                            )
+                            navController.navigate(NavigationItem.Main.route)
+                        }
+                        qrCodeViewModel.onQrCodeDetected(it)
                     }
-                    qrCodeViewModel.onQrCodeDetected(it)
                 } catch (e: Exception) {
                     // Обработка исключения
                     Napier.e(tag = "QrCodeScreen", message = "Error handling scanned QR code", throwable = e)

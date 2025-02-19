@@ -49,12 +49,12 @@ data class HomeUiState(
     val error: String? = null
 )
 
-@Stable
-data class QueueUiState(
-    val songs: SnapshotStateList<SongInQueue> = SnapshotStateList(),
+data class DemoUiState(
+    val songs: SnapshotStateList<Song> = SnapshotStateList(),
     val currentPlaylist: MutableList<SongInQueue> = mutableListOf(),
     val serverData: ServerData = ServerData("", 0),
-    val currentSong: SongInQueue? = null,
+    val searchQuery: String = "",
+    val currentSong: Song? = null,
     val isPlaying: Boolean = false,
     val tempo: Float = 0f,
     val pitch: Int = 0,
@@ -69,5 +69,7 @@ data class QueueUiState(
     val savedQrCode: String = "",
     val isServerConnected: Boolean = true,
     val isLoading: Boolean = true,
-    val error: String? = null
+    val isTabLoading: Boolean = true,
+    val currentSongs: List<Song> = emptyList(),
+    val error: String? = null,
 )

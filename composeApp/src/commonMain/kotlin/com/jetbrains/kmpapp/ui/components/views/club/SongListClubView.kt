@@ -1,4 +1,4 @@
-package com.jetbrains.kmpapp.ui.components.views
+package com.jetbrains.kmpapp.ui.components.views.club
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize

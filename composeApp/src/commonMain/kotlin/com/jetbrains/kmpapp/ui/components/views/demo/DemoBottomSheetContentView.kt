@@ -1,4 +1,4 @@
-package com.jetbrains.kmpapp.ui.components.views
+package com.jetbrains.kmpapp.ui.components.views.demo
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -13,25 +13,30 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.jetbrains.kmpapp.feature.commands.CommandHandler
+import com.jetbrains.kmpapp.ui.screens.demo.DemoViewModel
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
 import com.jetbrains.kmpapp.ui.theme.songCardPrimaryContent
 import com.jetbrains.kmpapp.ui.theme.songCardSecondaryContent
-import com.jetbrains.kmpapp.utils.MainUiState
+import com.jetbrains.kmpapp.utils.DemoUiState
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.artist
+import martyboxapp.composeapp.generated.resources.exit_demo_mode
 import martyboxapp.composeapp.generated.resources.next
 import martyboxapp.composeapp.generated.resources.pause
 import martyboxapp.composeapp.generated.resources.singingAssessment
@@ -44,11 +49,14 @@ import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun MainBottomSheetContentView(
-    uiState: MainUiState,
-    commandHandler: CommandHandler,
-    elementsAlpha: Float
+fun DemoBottomSheetContentView(
+    uiState: DemoUiState,
+    viewModel: DemoViewModel,
+    elementsAlpha: Float,
+    onExitDemoMode: () -> Unit
 ) {
+    var isPlaying = remember { mutableStateOf(false) }
+
     Box(
         Modifier
             .fillMaxWidth()
@@ -82,8 +90,11 @@ fun MainBottomSheetContentView(
                 )
             }
             IconButton(onClick = {
-                if (!uiState.isPlaying) commandHandler.playAfterPause()
-                else commandHandler.pause()
+                if (!isPlaying.value) {
+                    isPlaying.value = true
+                    uiState.currentSong?.let { viewModel.play(song = it) }
+                }
+                else isPlaying.value = true
             }) {
                 if (!uiState.isPlaying) {
                     Icon(
@@ -101,7 +112,7 @@ fun MainBottomSheetContentView(
                     )
                 }
             }
-            IconButton(onClick = { commandHandler.next() }) {
+            IconButton(onClick = { viewModel.next() }) {
                 Icon(
                     painter = painterResource(Res.drawable.next),
                     contentDescription = "Next",
@@ -121,7 +132,7 @@ fun MainBottomSheetContentView(
         ) {
             IconButton(
                 enabled = uiState.hasPlus,
-                onClick = { commandHandler.switchPlusMinus() }
+                onClick = {  }
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.voice),
@@ -129,7 +140,7 @@ fun MainBottomSheetContentView(
                     modifier = Modifier.size(28.dp),
                 )
             }
-            IconButton(onClick = { commandHandler.stop() }) {
+            IconButton(onClick = { isPlaying.value = false }) {
                 Icon(
                     painter = painterResource(Res.drawable.stop),
                     contentDescription = "Stop",
@@ -138,9 +149,8 @@ fun MainBottomSheetContentView(
                 )
             }
         }
-        SlidersView(
-            uiState = uiState,
-            commandHandler = commandHandler
+        DemoSlidersView(
+            uiState = uiState
         )
 
         FlowRow(
@@ -161,8 +171,8 @@ fun MainBottomSheetContentView(
                     Switch(
                         checked = uiState.singingAssessment,
                         onCheckedChange = {
-                            commandHandler.changeSingingAssessment(it)
-                            commandHandler.updateSingingAssessment(it)
+//                            commandHandler.changeSingingAssessment(it)
+//                            commandHandler.updateSingingAssessment(it)
                         }
                     )
                     Text(
@@ -181,8 +191,8 @@ fun MainBottomSheetContentView(
                         checked = uiState.soundInPause,
                         modifier = Modifier.padding(end = 8.dp),
                         onCheckedChange = {
-                            commandHandler.changeSoundInPause(it)
-                            commandHandler.updateSoundInPause(it)
+//                            commandHandler.changeSoundInPause(it)
+//                            commandHandler.updateSoundInPause(it)
                         }
                     )
                     Text(
@@ -192,6 +202,21 @@ fun MainBottomSheetContentView(
                     )
                 }
             }
+        }
+        Button(
+            onClick = {
+                // Логика выхода из демо режима
+                onExitDemoMode()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            Text(
+                text = stringResource(Res.string.exit_demo_mode),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
