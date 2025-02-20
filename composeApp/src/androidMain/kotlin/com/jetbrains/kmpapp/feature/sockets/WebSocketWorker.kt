@@ -13,12 +13,7 @@ import androidx.core.app.NotificationCompat
 import com.jetbrains.kmpapp.R
 import com.jetbrains.kmpapp.data.sockets.WebSocketService
 import com.jetbrains.kmpapp.feature.datastore.AppPreferencesRepository
-import io.github.aakira.napier.Napier
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.launch
 import org.koin.android.ext.android.get
 
 
@@ -27,8 +22,6 @@ class WebSocketWorker : Service() {
     private var webSocketJob: Job? = null
 
     private lateinit var webSocketService: WebSocketService
-
-    private var isConnecting = false
 
     override fun onCreate() {
         super.onCreate()
@@ -40,37 +33,6 @@ class WebSocketWorker : Service() {
         webSocketService = AndroidWebSocketService()
         startForegroundService()
         appPreferencesRepository = get()
-    }
-
-//    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-//        Log.d("WebSocketService", "onStartCommand called")
-//        observeQrCodeAndConnect()
-//        return START_NOT_STICKY
-//    }
-
-    private fun observeQrCodeAndConnect() {
-        Log.d("AndroidWebSocket", "connectToQrCode")
-        webSocketJob?.cancel()
-        webSocketJob = CoroutineScope(Dispatchers.IO).launch {
-            appPreferencesRepository.getQrCode()
-                .filterNotNull()
-                .collect { qrCode ->
-                    if (isConnecting) {
-                        Napier.w(tag = "AndroidWebSocket", message = "Already connecting, skipping")
-                        return@collect
-                    }
-                    isConnecting = true
-
-                    connectToWebSocket(qrCode)
-                }
-        }
-    }
-
-    private fun connectToWebSocket(qrCode: String) {
-        Napier.d(tag = "AndroidWebSocket", message = "connectToQrCode")
-        CoroutineScope(Dispatchers.IO).launch {
-            webSocketService.connect(qrCode)
-        }
     }
 
     private fun updateNotification(title: String, content: String) {
