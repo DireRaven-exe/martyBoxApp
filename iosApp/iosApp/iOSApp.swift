@@ -4,7 +4,7 @@ import BackgroundTasks
 
 @main
 struct iOSApp: App {
-    @StateObject private var webSocketWorker = WebSocketWorker()
+    @StateObject private var webSocketWorker = WebSocketWorkerWrapper()
 
     init() {
         KoinKt.doInitKoin()

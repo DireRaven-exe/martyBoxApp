@@ -8,7 +8,7 @@ import platform.UIKit.UIBackgroundTaskInvalid
 //import platform.UIKit.endBackgroundTask
 import com.jetbrains.kmpapp.data.sockets.WebSocketService
 
-class WebSocketWorker {
+class IOSWebSocketWorker {
     private val webSocketService = IOSWebSocketService() // Реализация WebSocketService для iOS
     private var backgroundTaskId: UIBackgroundTaskIdentifier = UIBackgroundTaskInvalid
 
