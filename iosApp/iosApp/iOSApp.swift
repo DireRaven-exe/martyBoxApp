@@ -4,7 +4,7 @@ import BackgroundTasks
 
 @main
 struct iOSApp: App {
-    @StateObject private var webSocketWorker = WebSocketWorkerWrapper()
+    //@StateObject private var webSocketWorker = WebSocketWorkerWrapper()
 
     init() {
         KoinKt.doInitKoin()
@@ -13,7 +13,7 @@ struct iOSApp: App {
     var body: some Scene {
         WindowGroup {
                     ContentView()
-                        .environmentObject(webSocketWorker)
+                        //.environmentObject(webSocketWorker)
                 }
     }
 }

@@ -14,7 +14,6 @@
 		7764D02D2D5723D2004F7423 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7764D02C2D5723D2004F7423 /* Foundation.framework */; };
 		7764D02F2D5723EA004F7423 /* BackgroundTasks.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7764D02E2D5723EA004F7423 /* BackgroundTasks.framework */; };
 		7764D0312D6794E0004F7423 /* WebSocketWorkerWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7764D0302D6794E0004F7423 /* WebSocketWorkerWrapper.swift */; };
-		7764D0332D67AA64004F7423 /* UIApplicationWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7764D0322D67AA0B004F7423 /* UIApplicationWrapper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,7 +26,6 @@
 		7764D02C2D5723D2004F7423 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		7764D02E2D5723EA004F7423 /* BackgroundTasks.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BackgroundTasks.framework; path = System/Library/Frameworks/BackgroundTasks.framework; sourceTree = SDKROOT; };
 		7764D0302D6794E0004F7423 /* WebSocketWorkerWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketWorkerWrapper.swift; sourceTree = "<group>"; };
-		7764D0322D67AA0B004F7423 /* UIApplicationWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIApplicationWrapper.swift; sourceTree = "<group>"; };
 		AB3632DC29227652001CCB65 /* Config.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -82,7 +80,6 @@
 		7555FF7D242A565900829871 /* iosApp */ = {
 			isa = PBXGroup;
 			children = (
-				7764D0322D67AA0B004F7423 /* UIApplicationWrapper.swift */,
 				7764D0302D6794E0004F7423 /* WebSocketWorkerWrapper.swift */,
 				058557BA273AAA24004C7B11 /* Assets.xcassets */,
 				7555FF82242A565900829871 /* ContentView.swift */,
@@ -198,7 +195,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7764D0332D67AA64004F7423 /* UIApplicationWrapper.swift in Sources */,
 				2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */,
 				7764D0312D6794E0004F7423 /* WebSocketWorkerWrapper.swift in Sources */,
 				7555FF83242A565900829871 /* ContentView.swift in Sources */,
