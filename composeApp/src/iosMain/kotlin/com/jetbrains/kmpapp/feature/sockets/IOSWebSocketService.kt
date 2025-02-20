@@ -11,6 +11,11 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
+object WebSocketServiceHolder {
+    val webSocketService: WebSocketService = IOSWebSocketService()
+}
+
+
 class IOSWebSocketService : WebSocketService {
     private val messageFlow = MutableSharedFlow<String>()
     private val connectionStateFlow = MutableStateFlow<WebSocketConnectionState>(WebSocketConnectionState.Disconnected)
