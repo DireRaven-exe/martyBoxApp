@@ -8,7 +8,7 @@ import platform.UIKit.UIBackgroundTaskInvalid
 //import platform.UIKit.endBackgroundTask
 import com.jetbrains.kmpapp.data.sockets.WebSocketService
 
-class IOSWebSocketWorker {
+class WebSocketWorker {
     private val webSocketService = IOSWebSocketService() // Реализация WebSocketService для iOS
     private var backgroundTaskId: UIBackgroundTaskIdentifier = UIBackgroundTaskInvalid
 
@@ -16,11 +16,11 @@ class IOSWebSocketWorker {
         startBackgroundTask()
     }
 
-    private fun startBackgroundTask() {
-        backgroundTaskId = UIApplication().beginBackgroundTaskWithName("WebSocketTask") {
+    fun startBackgroundTask() {
+        backgroundTaskId = UIApplication.shared.beginBackgroundTaskWithName("WebSocketTask") {
             // Если задача завершилась, сообщаем системе, что работа окончена
             if (backgroundTaskId != UIBackgroundTaskInvalid) {
-                UIApplication().endBackgroundTask(backgroundTaskId)
+                UIApplication.shared.endBackgroundTask(backgroundTaskId)
                 backgroundTaskId = UIBackgroundTaskInvalid
             }
         }
@@ -30,7 +30,7 @@ class IOSWebSocketWorker {
 
     fun stopBackgroundTask() {
         if (backgroundTaskId != UIBackgroundTaskInvalid) {
-            UIApplication().endBackgroundTask(backgroundTaskId)
+            UIApplication.shared.endBackgroundTask(backgroundTaskId)
             backgroundTaskId = UIBackgroundTaskInvalid
         }
     }
