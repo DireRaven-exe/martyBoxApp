@@ -3,8 +3,9 @@ package com.jetbrains.kmpapp.feature.sockets
 import platform.UIKit.UIApplication
 import platform.UIKit.UIBackgroundTaskIdentifier
 import platform.UIKit.UIBackgroundTaskInvalid
-import platform.UIKit.beginBackgroundTaskWithName
-import platform.UIKit.endBackgroundTask
+//import platform.UIKit
+//import platform.UIKit.beginBackgroundTask
+//import platform.UIKit.endBackgroundTask
 import com.jetbrains.kmpapp.data.sockets.WebSocketService
 
 class WebSocketWorker {
