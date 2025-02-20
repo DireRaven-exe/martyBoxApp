@@ -37,10 +37,10 @@ import com.jetbrains.kmpapp.ui.components.content.Picker
 import com.jetbrains.kmpapp.ui.components.content.rememberPickerState
 import com.jetbrains.kmpapp.ui.components.dialogs.ConfirmDisconnectionDialog
 import com.jetbrains.kmpapp.ui.components.dialogs.ServerDisconnectedDialog
+import com.jetbrains.kmpapp.ui.components.views.club.ClubTypeView
+import com.jetbrains.kmpapp.ui.components.views.home.HomeTypeView
 import com.jetbrains.kmpapp.ui.navigation.NavigationItem
 import com.jetbrains.kmpapp.ui.screens.loading.LoadingScreen
-import com.jetbrains.kmpapp.ui.screens.main.views.ClubTypeView
-import com.jetbrains.kmpapp.ui.screens.main.views.HomeTypeView
 import com.jetbrains.kmpapp.ui.theme.buttonAcceptDialog
 import com.jetbrains.kmpapp.utils.Constants
 import io.github.aakira.napier.Napier
@@ -54,16 +54,16 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun MainScreen(
     navController: NavHostController,
-    mainViewModel: MainViewModel = koinViewModel<MainViewModel>(),
+    viewModel: MainViewModel = koinViewModel<MainViewModel>(),
     paddingValues: PaddingValues
 ) {
     //val mainViewModel = getViewModel()
 
         Napier.d(
         tag = "AndroidTest",
-        message = "MainScreen: $mainViewModel"
+        message = "MainScreen: $viewModel"
     )
-    val uiState = mainViewModel.mainUiState.collectAsState().value
+    val uiState = viewModel.uiState.collectAsState().value
     var savedTableValue by rememberSaveable { mutableStateOf(uiState.currentTable) }
     val savedQrCode = uiState.savedQrCode
     var showTableDialog = false
@@ -73,7 +73,7 @@ fun MainScreen(
     var isReconnectAllowed  by rememberSaveable { mutableStateOf(true) }
 
 
-    val commandHandler = CommandHandler(mainViewModel)
+    val commandHandler = CommandHandler(viewModel)
     val valuesPickerState = rememberPickerState()
 
     // Сохраняем qrCode при первом получении
@@ -82,10 +82,10 @@ fun MainScreen(
             if (isReconnectAllowed) {
                 Napier.d(tag = "Websocket", message = "MainScreen connecting")
                 if (isNotEmpty()) {
-                    mainViewModel.connectToWebSocket(savedQrCode)
+                    viewModel.connectToWebSocket(savedQrCode)
                     Napier.d(
                         tag = "AndroidWebSocket",
-                        message = "MainScreen: $mainViewModel to $this"
+                        message = "MainScreen: $viewModel to $this"
                     )
                 }
             }
@@ -93,11 +93,11 @@ fun MainScreen(
     }
 
     LaunchedEffect(Unit) {
-        mainViewModel.getCurrentTable()
+        viewModel.getCurrentTable()
     }
 
     LaunchedEffect(uiState.currentTable) {
-        mainViewModel.getCurrentTable()
+        viewModel.getCurrentTable()
         savedTableValue = uiState.currentTable
     }
 
@@ -109,8 +109,8 @@ fun MainScreen(
 //        } else showDisconnectedDialog = false
 //    }
 
-    LaunchedEffect(mainViewModel.connectionState) {
-        mainViewModel.connectionState.collect { state ->
+    LaunchedEffect(viewModel.connectionState) {
+        viewModel.connectionState.collect { state ->
             if (state == WebSocketConnectionState.Disconnected) {
                 delay(2000)
                 showDisconnectedDialog = true
@@ -121,7 +121,7 @@ fun MainScreen(
     }
 
     LaunchedEffect(savedTableValue) {
-        mainViewModel.updateCurrentTable(savedTableValue)
+        viewModel.updateCurrentTable(savedTableValue)
         if (savedTableValue == -1 && uiState.isServerConnected) {
             showTableDialog = true
         }
@@ -134,8 +134,8 @@ fun MainScreen(
             showConfirmDisconnectionDialog = true
         },
         onBackFromLoading = {
-            mainViewModel.clearSavedQrCode()
-            mainViewModel.clearSavedTableNumber()
+            viewModel.clearSavedQrCode()
+            viewModel.clearSavedTableNumber()
             navController.navigate("home_screen") {
                 popUpTo("home_screen") { inclusive = true }
             }
@@ -150,12 +150,12 @@ fun MainScreen(
             onDisconnect = {
                 showDisconnectedDialog = false
                 isReconnectAllowed = false
-                mainViewModel.clearSavedQrCode()
-                mainViewModel.clearSavedTableNumber()
+                viewModel.clearSavedQrCode()
+                viewModel.clearSavedTableNumber()
                 navController.navigate(NavigationItem.Home.route) {
                     popUpTo(NavigationItem.Home.route) { inclusive = true }
                 }
-                mainViewModel.onDisconnected("Connection lost")
+                viewModel.onDisconnected("Connection lost")
             }
         )
 
@@ -167,12 +167,12 @@ fun MainScreen(
                 showConfirmDisconnectionDialog = false
                 isManuallyDisconnected = true
                 isReconnectAllowed = false
-                mainViewModel.clearSavedQrCode()
-                mainViewModel.clearSavedTableNumber()
+                viewModel.clearSavedQrCode()
+                viewModel.clearSavedTableNumber()
                 navController.navigate(NavigationItem.Home.route) {
                     popUpTo(NavigationItem.Home.route) { inclusive = true }
                 }
-                mainViewModel.onDisconnected("User manually disconnected")
+                viewModel.onDisconnected("User manually disconnected")
             },
             onDismiss = {
                 showConfirmDisconnectionDialog = false
@@ -185,12 +185,12 @@ fun MainScreen(
             onCancelClick = {
                 isManuallyDisconnected = true
                 isReconnectAllowed = false
-                mainViewModel.clearSavedQrCode()
-                mainViewModel.clearSavedTableNumber()
+                viewModel.clearSavedQrCode()
+                viewModel.clearSavedTableNumber()
                 navController.navigate(NavigationItem.Home.route) {
                     popUpTo(NavigationItem.Home.route) { inclusive = true }
                 }
-                mainViewModel.onDisconnected("")
+                viewModel.onDisconnected("")
             }
         )
     } else {
@@ -251,8 +251,8 @@ fun MainScreen(
                     Button(
                         onClick = {
                             val table = valuesPickerState.selectedItem.toIntOrNull() ?: -1
-                            mainViewModel.updateCurrentTable(table)
-                            mainViewModel.saveCurrentTable(table)
+                            viewModel.updateCurrentTable(table)
+                            viewModel.saveCurrentTable(table)
                             showTableDialog = false
 
                         },

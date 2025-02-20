@@ -1,98 +1,75 @@
 package com.jetbrains.kmpapp.feature.sockets
 
-import android.util.Log
 import com.jetbrains.kmpapp.data.sockets.KtorWebsocketClient
 import com.jetbrains.kmpapp.data.sockets.WebSocketConnectionState
 import com.jetbrains.kmpapp.data.sockets.WebSocketService
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
-class AndroidWebSocketService : WebSocketService {
+class IOSWebSocketService : WebSocketService {
     private val messageFlow = MutableSharedFlow<String>()
     private val connectionStateFlow = MutableStateFlow<WebSocketConnectionState>(WebSocketConnectionState.Disconnected)
     private val ktorClient = KtorWebsocketClient()
-    private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     init {
         ktorClient.updateCallbacks(object : KtorWebsocketClient.WebsocketEvents {
             override fun onReceive(data: String) {
-                Napier.d(tag = "AndroidWebSocket", message = "onReceive function")
-                scope.launch {
+                coroutineScope.launch {
                     messageFlow.emit(data)
                 }
             }
 
             override fun onConnected() {
-                if (connectionStateFlow.value != WebSocketConnectionState.Connected) {
-                    scope.launch {
-                        Napier.d(tag = "AndroidWebSocket", message = "onConnected function = $this")
-                        connectionStateFlow.emit(WebSocketConnectionState.Connected)
-                    }
+                coroutineScope.launch {
+                    connectionStateFlow.emit(WebSocketConnectionState.Connected)
                 }
             }
 
             override fun onDisconnected(reason: String) {
-//                scope.launch {
-//                    connectionStateFlow.emit(WebSocketConnectionState.Disconnected)
-//                }
-                if (connectionStateFlow.value != WebSocketConnectionState.Disconnected) {
-                    scope.launch {
-                        Napier.d(tag = "AndroidWebSocket", message = "onDisconnected function = $this")
-                        connectionStateFlow.emit(WebSocketConnectionState.Disconnected)
-                    }
+                coroutineScope.launch {
+                    connectionStateFlow.emit(WebSocketConnectionState.Disconnected)
                 }
             }
 
             override fun onPingMessage() {
-                scope.launch {
-                    // Логика обработки ping (например, логирование или отправка pong-сообщения)
+                coroutineScope.launch {
                     println("Ping received from server")
-                    
                 }
             }
         })
     }
 
     override fun connect(url: String) {
-
-        scope.launch {
-            //connectionStateFlow.emit(WebSocketConnectionState.Disconnected) // Сбрасываем состояние перед подключением
+        coroutineScope.launch {
             try {
                 ktorClient.updateKtorWebsocketClient(url)
                 ktorClient.connect()
-
+                connectionStateFlow.emit(WebSocketConnectionState.Connected)
             } catch (e: Exception) {
                 connectionStateFlow.emit(WebSocketConnectionState.Error("Connection failed: ${e.message}"))
-                Log.d("AndroidWebSocket", "Connection failed: ${e.message}")
-
             }
         }
-//        Napier.i(tag = "AndroidWebSocket", message = "connectionStatus in begin: ${connectionStateFlow.value}")
     }
 
     override fun disconnect() {
-        scope.launch {
+        coroutineScope.launch {
             try {
                 ktorClient.stop()
                 connectionStateFlow.emit(WebSocketConnectionState.Disconnected)
             } catch (e: Exception) {
                 connectionStateFlow.emit(WebSocketConnectionState.Error("Disconnection failed: ${e.message}"))
-            } finally {
-                scope.cancel() // Завершение scope для освобождения ресурсов
-                scope = CoroutineScope(Dispatchers.IO + SupervisorJob()) // Новый scope для повторного подключения
             }
         }
     }
 
     override fun sendMessage(message: String) {
-        scope.launch {
+        coroutineScope.launch {
             try {
                 ktorClient.send(message)
             } catch (e: Exception) {

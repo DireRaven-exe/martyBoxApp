@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
+import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.android.datatransport.BuildConfig
@@ -32,13 +33,33 @@ class MartyBoxApp : Application() {
                 // Запросить разрешение на уведомления
                 val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
                 intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-                // Устанавливаем флаг для старта активности
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 startActivity(intent)
             }
         }
 
+        // Запуск сервиса
         WebSocketWorker.start(this@MartyBoxApp)
+
+        // Отслеживание жизненного цикла приложения
+        ProcessLifecycleOwner.get().lifecycle.addObserver(AppLifecycleObserver())
+    }
+
+    inner class AppLifecycleObserver : DefaultLifecycleObserver {
+        override fun onStart(owner: LifecycleOwner) {
+            // Приложение перешло в foreground
+            WebSocketWorker.start(this@MartyBoxApp)
+        }
+
+        override fun onStop(owner: LifecycleOwner) {
+            // Приложение перешло в background, но не обязательно завершено
+            // Здесь ничего не делаем, так как сервис должен продолжать работать
+        }
+
+        override fun onDestroy(owner: LifecycleOwner) {
+            super.onDestroy(owner)
+            WebSocketWorker.stop(this@MartyBoxApp)
+        }
     }
 
     companion object {
@@ -51,10 +72,5 @@ class MartyBoxApp : Application() {
         fun getLifecycleOwner(): LifecycleOwner {
             return ProcessLifecycleOwner.get()
         }
-    }
-
-    override fun onTerminate() {
-        super.onTerminate()
-        WebSocketWorker.stop(this@MartyBoxApp)
     }
 }

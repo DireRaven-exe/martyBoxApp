@@ -1,4 +1,4 @@
-package com.jetbrains.kmpapp.ui.screens.main.views
+package com.jetbrains.kmpapp.ui.components.views.club
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -14,8 +14,6 @@ import androidx.compose.runtime.setValue
 import com.jetbrains.kmpapp.feature.commands.CommandHandler
 import com.jetbrains.kmpapp.ui.components.content.MainTopAppBar
 import com.jetbrains.kmpapp.ui.components.content.QueueTopAppBar
-import com.jetbrains.kmpapp.ui.components.views.ClubContentView
-import com.jetbrains.kmpapp.ui.components.views.QueueClubContentView
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
 import com.jetbrains.kmpapp.utils.MainUiState
 import kotlinx.coroutines.Dispatchers

@@ -36,7 +36,7 @@ class MainViewModel(
 ) : BaseViewModel(appPreferencesRepository) {
 
     private val _uiState = MutableStateFlow(MainUiState())
-    val mainUiState = _uiState.asStateFlow()
+    val uiState = _uiState.asStateFlow()
 
     private val _messages = MutableStateFlow<List<String>>(emptyList())
     val messages: StateFlow<List<String>> = _messages

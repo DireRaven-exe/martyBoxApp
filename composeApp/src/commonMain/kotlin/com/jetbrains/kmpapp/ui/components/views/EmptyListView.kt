@@ -1,4 +1,4 @@
-package com.jetbrains.kmpapp.ui.screens.main.views
+package com.jetbrains.kmpapp.ui.components.views
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box

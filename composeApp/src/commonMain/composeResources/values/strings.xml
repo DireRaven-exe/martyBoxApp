@@ -33,4 +33,6 @@
     <string name="queue">Очередь</string>
     <string name="orders">Мои заказы</string>
     <string name="to_home">Выйти на главный экран</string>
+    <string name="exit_demo_mode">Выйти из демонстрационного режима</string>
+
 </resources>
