@@ -37,8 +37,8 @@ struct iOSApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(webSocketWorker)
-        }
+                    ContentView()
+                        .environmentObject(webSocketWorker)
+                }
     }
 }

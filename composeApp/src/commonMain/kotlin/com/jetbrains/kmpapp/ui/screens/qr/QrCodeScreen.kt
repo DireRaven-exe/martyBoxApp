@@ -30,6 +30,7 @@ import martyboxapp.composeapp.generated.resources.openSettings
 import martyboxapp.composeapp.generated.resources.requestPermission
 import martyboxapp.composeapp.generated.resources.topBarScanQRcode
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.publicvalue.multiplatform.qrcode.CodeType
 import org.publicvalue.multiplatform.qrcode.ScannerWithPermissions
