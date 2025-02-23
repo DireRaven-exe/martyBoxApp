@@ -81,6 +81,7 @@ class WebSocketWorker : Service() {
         webSocketJob?.cancel()
         webSocketService.disconnect()
         updateNotification("MARTIN Catalog", "Соединение разорвано")
+        stopSelf()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
