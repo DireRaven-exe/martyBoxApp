@@ -215,6 +215,7 @@ class KtorWebsocketClient {
 
         try {
             session?.send(Frame.Text("ping"))
+            session?.send(Frame.Text("${this.listener}"))
             Napier.d(tag = TAG, message = "Ping sent")
             listener?.onPingMessage()
         } catch (e: Exception) {
