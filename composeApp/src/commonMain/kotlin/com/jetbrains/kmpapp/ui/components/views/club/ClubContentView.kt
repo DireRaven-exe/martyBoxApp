@@ -53,7 +53,9 @@ fun ClubContentView(
     }
     LaunchedEffect(pagerState.currentPage) {
         selectedTabIndex = pagerState.currentPage
-        commandHandler.updateSongsForTab(tabNames[selectedTabIndex])
+        if (tabNames.isNotEmpty()) {
+            commandHandler.updateSongsForTab(tabNames[selectedTabIndex])
+        }
     }
 
     Box(

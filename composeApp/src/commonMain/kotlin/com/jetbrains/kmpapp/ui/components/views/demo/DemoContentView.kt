@@ -64,7 +64,9 @@ fun DemoContentView(
     // Убрали второй LaunchedEffect, передав управление ViewModel
     LaunchedEffect(pagerState.currentPage) {
         selectedTabIndex = pagerState.currentPage
-        viewModel.updateSongsForTab(tabNames[selectedTabIndex])
+        if (tabNames.isNotEmpty()) {
+            viewModel.updateSongsForTab(tabNames[selectedTabIndex])
+        }
     }
 
     Column(

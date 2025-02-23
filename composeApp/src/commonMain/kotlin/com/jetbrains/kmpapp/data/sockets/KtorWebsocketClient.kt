@@ -47,7 +47,7 @@ class KtorWebsocketClient {
         }
         install(WebSockets) {
             pingInterval = 10_000.milliseconds
-            maxFrameSize = Long.MAX_VALUE
+            //maxFrameSize = Long.MAX_VALUE
         }
         install(HttpTimeout) {
             requestTimeoutMillis = 5_000

@@ -74,7 +74,9 @@ fun HomeContentView(
     // Убрали второй LaunchedEffect, передав управление ViewModel
     LaunchedEffect(pagerState.currentPage) {
         selectedTabIndex = pagerState.currentPage
-        commandHandler.updateSongsForTab(tabNames[selectedTabIndex])
+        if (tabNames.isNotEmpty()) {
+            commandHandler.updateSongsForTab(tabNames[selectedTabIndex])
+        }
     }
 
     Column(
