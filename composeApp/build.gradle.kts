@@ -83,6 +83,7 @@ kotlin {
             implementation(libs.ktor.client.websockets)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
+            //implementation(libs.ktor.client.ratelimit)
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
             implementation(libs.coil.compose)
@@ -109,6 +110,8 @@ kotlin {
             implementation(libs.urlencoder)
 
             implementation("sh.calvin.reorderable:reorderable:2.4.3")
+
+
         }
     }
 }

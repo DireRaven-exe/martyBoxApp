@@ -47,11 +47,13 @@ class KtorWebsocketClient {
         }
         install(WebSockets) {
             pingInterval = 10_000.milliseconds
+            maxFrameSize = Long.MAX_VALUE
         }
         install(HttpTimeout) {
             requestTimeoutMillis = 5_000
             connectTimeoutMillis = 5_000
         }
+        //RateLimit.install(configure = {})
     }
 
     private val scope = CoroutineScope(Dispatchers.IO) + SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
@@ -215,6 +217,7 @@ class KtorWebsocketClient {
 
         try {
             session?.send(Frame.Text("ping"))
+            session?.send(Frame.Text("$this"))
             session?.send(Frame.Text("${this.listener}"))
             Napier.d(tag = TAG, message = "Ping sent")
             listener?.onPingMessage()
