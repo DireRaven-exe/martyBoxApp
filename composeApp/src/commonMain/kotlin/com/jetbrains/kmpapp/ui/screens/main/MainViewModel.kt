@@ -4,8 +4,10 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.viewModelScope
 import com.jetbrains.kmpapp.data.dto.models.Command
 import com.jetbrains.kmpapp.data.dto.models.ResponseDto
+import com.jetbrains.kmpapp.data.dto.models.ResponseSongsForTabDto
 import com.jetbrains.kmpapp.data.dto.models.toServerData
-import com.jetbrains.kmpapp.data.dto.models.toSongs
+import com.jetbrains.kmpapp.data.dto.models.toSong
+import com.jetbrains.kmpapp.data.dto.models.toSongInQueue
 import com.jetbrains.kmpapp.data.sockets.WebSocketConnectionState
 import com.jetbrains.kmpapp.data.sockets.WebSocketService
 import com.jetbrains.kmpapp.domain.models.Song
@@ -37,6 +39,9 @@ class MainViewModel(
 
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState = _uiState.asStateFlow()
+
+    private val _currentTab = MutableStateFlow("")
+    val currentTab = _currentTab.asStateFlow()
 
     private val _messages = MutableStateFlow<List<String>>(emptyList())
     val messages: StateFlow<List<String>> = _messages
@@ -77,17 +82,12 @@ class MainViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        Napier.e(tag = "MAINVIEWMODEL", message = "onCleared mainViewModel: $this")
         _uiState.value = MainUiState()
         disconnect()
     }
 
     override fun updateSongsForTab(tabName: String) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                currentSongs = emptyList(),
-                isTabLoading = true
-            )
             val filteredSongs = _uiState.value.songs.filter { it.tab == tabName }
             _uiState.value = _uiState.value.copy(
                 currentSongs = filteredSongs,
@@ -117,7 +117,6 @@ class MainViewModel(
     }
 
     override fun sendCommand(type: Int, value: String, table: Int) {
-        Napier.d(tag = "MAINVIEWMODEL", message = "$this")
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val command = json.encodeToString(Command(type, value, table))
@@ -168,8 +167,8 @@ class MainViewModel(
     override fun onConnected() {
         Napier.d(tag = "WebSocket", message = "Connected to WebSocket")
         updateServerConnectionStatus(true)
-        sendCommand(type = 17, value = "", table = 0)
-        sendCommand(type = 26, value = "[\"playlist\"]", table = _uiState.value.currentTable)
+        sendCommand(type = 26, value = "[\"tablist\"]", table = _uiState.value.currentTable)
+
     }
 
     override fun onDisconnected(reason: String) {
@@ -180,6 +179,7 @@ class MainViewModel(
 
     override fun onPingMessage() {
         sendCommand(type = 26, value = "[\"playlist\"]", table = _uiState.value.currentTable)
+        Napier.d(tag = "AndroidWebSocket", message = "isLoading = ${_uiState.value.isLoading} | isTabLoading = ${_uiState.value.isTabLoading}")
     }
 
     override fun processWebSocketMessage(jsonString: String) {
@@ -203,16 +203,47 @@ class MainViewModel(
                 if (processed) dataProcessed = true
             }
 
-            if (!isStateMessage && jsonObject.containsKeys("type", "tables", "value")) {
-                try {
-                    val responseData = json.decodeFromString<ResponseDto>(jsonString)
-                    dataProcessed = true
-                    _uiState.value = _uiState.value.copy(
-                        songs = responseData.toSongs(),
-                        serverData = responseData.toServerData()
-                    )
-                } catch (e: Exception) {
-                    Napier.e(tag = "WebSocket", message = "Error parsing ResponseDto: ${e.message}")
+            if (!isStateMessage) {
+                if (jsonObject.containsKeys("type", "tables", "tabs")) {
+                    try {
+                        val responseData = json.decodeFromString<ResponseDto>(jsonString)
+                        dataProcessed = true
+                        _uiState.value = _uiState.value.copy(serverData = responseData.toServerData())
+                        _currentTab.value = responseData.tabs[0]
+                        sendCommand(type = 1, value = "", table = _uiState.value.currentTable)
+                    } catch (e: Exception) {
+                        Napier.e(tag = "WebSocket", message = "Error parsing ResponseDto: ${e.message}")
+                    }
+                } else {
+                    if (jsonObject.containsKeys("last", "songs", "tab", "isBase")) {
+                        val responseData = json.decodeFromString<ResponseSongsForTabDto>(jsonString)
+                        dataProcessed = true
+
+                        if (responseData.isBase) {
+                            val updatedSongs = responseData.songs.map { song ->
+                                song.copy(tab = responseData.tab).toSong()
+                            }
+                            _uiState.update { state ->
+                                state.copy(
+                                    songs = state.songs.apply { addAll(updatedSongs) },
+                                    isLoading = !responseData.last,
+                                    isTabLoading = !responseData.last,
+                                    currentSongs = state.songs.filter { it.tab == _currentTab.value }
+                                )
+                            }
+                            Napier.d(tag = "AndroidWebSocket", message = "isLoading = ${_uiState.value.isLoading}\nisTabLoading = ${_uiState.value.isTabLoading}")
+                        } else {
+                            val updatedSongs = responseData.songs.map { song ->
+                                song.copy(tab = responseData.tab).toSongInQueue()
+                            }
+                            _uiState.update { state ->
+                                state.copy(
+                                    currentPlaylist = (state.currentPlaylist + updatedSongs).toMutableList(),
+                                )
+                            }
+                        }
+                    }
+                    Napier.w(tag = "WebSocket", message = "Received unexpected message format: $jsonString")
                 }
             } else {
                 Napier.w(tag = "WebSocket", message = "Received unexpected message format: $jsonString")

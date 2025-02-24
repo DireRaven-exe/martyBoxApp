@@ -1,6 +1,6 @@
 package com.jetbrains.kmpapp.feature.messages.states
 
-import com.jetbrains.kmpapp.data.dto.models.SongsDto
+import com.jetbrains.kmpapp.data.dto.models.SongDto
 import com.jetbrains.kmpapp.data.dto.models.toSongInQueue
 import com.jetbrains.kmpapp.feature.messages.StateMessage
 import com.jetbrains.kmpapp.utils.MainUiState
@@ -27,7 +27,7 @@ class PlaylistMessage : StateMessage {
             val songs = playlists.flatMap { playlist ->
                 playlist[""]?.jsonArray?.mapNotNull { songJson ->
                     try {
-                        val songDto = json.decodeFromJsonElement<SongsDto>(songJson)
+                        val songDto = json.decodeFromJsonElement<SongDto>(songJson)
                         songDto.toSongInQueue()
                     } catch (e: Exception) {
                         Napier.e(tag = "WebSocket", message = "Error decoding song: ${e.message}")

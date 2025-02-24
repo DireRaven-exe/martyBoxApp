@@ -40,6 +40,7 @@ import com.jetbrains.kmpapp.ui.components.views.ProgressView
 import com.jetbrains.kmpapp.ui.theme.buttonAcceptDialog
 import com.jetbrains.kmpapp.ui.theme.buttonDismissDialog
 import com.jetbrains.kmpapp.utils.MainUiState
+import io.github.aakira.napier.Napier
 
 @Composable
 fun HomeContentView(
@@ -130,7 +131,9 @@ fun HomeContentView(
                                     // Ничего не отображать, если это не текущая папка
                                 } else if (uiState.isTabLoading) {
                                     ProgressView(paddingValues)
+                                    Napier.d(tag = "HomeContentView", message = "isLoading = ${uiState.isLoading}\nisTabLoading = ${uiState.isTabLoading}\ncurrentSongs = ${uiState.currentSongs}")
                                 } else {
+                                    Napier.d(tag = "HomeContentView", message = "isLoading = ${uiState.isLoading}\nisTabLoading = ${uiState.isTabLoading}\ncurrentSongs = ${uiState.currentSongs}")
                                     SongListHomeView(
                                         songs = uiState.currentSongs,
                                         uiState = uiState,

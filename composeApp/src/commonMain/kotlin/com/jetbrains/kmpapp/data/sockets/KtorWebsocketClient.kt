@@ -47,12 +47,13 @@ class KtorWebsocketClient {
         }
         install(WebSockets) {
             pingInterval = 10_000.milliseconds
-            //maxFrameSize = Long.MAX_VALUE
+            maxFrameSize = Int.MAX_VALUE.toLong()
         }
         install(HttpTimeout) {
             requestTimeoutMillis = 5_000
             connectTimeoutMillis = 5_000
         }
+
         //RateLimit.install(configure = {})
     }
 
