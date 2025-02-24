@@ -32,6 +32,7 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+            //extraOpts("-Xbinary=com.direraven.kmpapp.MARTIN-Catalog")
         }
     }
 
