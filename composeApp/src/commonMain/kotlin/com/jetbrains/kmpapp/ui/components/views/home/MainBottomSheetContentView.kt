@@ -168,8 +168,8 @@ fun MainBottomSheetContentView(
                     )
                     Text(
                         text = stringResource(Res.string.singingAssessment),
-                        style = MaterialTheme.typography.titleMedium,
-                        maxLines = 1
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 2
                     )
                 }
 
@@ -188,8 +188,8 @@ fun MainBottomSheetContentView(
                     )
                     Text(
                         text = stringResource(Res.string.soundInPause),
-                        style = MaterialTheme.typography.titleMedium,
-                        maxLines = 1
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 2
                     )
                 }
             }

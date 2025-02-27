@@ -1,0 +1,11 @@
+//
+//  infoPlist.strings
+//  iosApp
+//
+//  Created by Виктор on 26.02.2025.
+//  Copyright © 2025 orgName. All rights reserved.
+//
+
+NSCameraUsageDescription="Requires Camera for QR-code Scanning";
+
+
