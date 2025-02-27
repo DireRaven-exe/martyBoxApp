@@ -242,6 +242,7 @@ class MainViewModel(
                                 )
                             }
                         }
+                        sendCommand(type = 17, value = "", table = _uiState.value.currentTable)
                     }
                     Napier.w(tag = "WebSocket", message = "Received unexpected message format: $jsonString")
                 }
