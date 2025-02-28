@@ -45,7 +45,7 @@ abstract class BaseViewModel(
 
     fun clearSavedQrCode() {
         viewModelScope.launch(coroutineExceptionHandler) {
-            appPreferencesRepository.saveQrCode(qrCode = "")
+            appPreferencesRepository.clearQrCode()
         }
     }
 
