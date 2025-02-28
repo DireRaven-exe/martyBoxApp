@@ -2,6 +2,7 @@ package com.jetbrains.kmpapp.feature.messages.states
 
 import com.jetbrains.kmpapp.data.dto.models.SongDto
 import com.jetbrains.kmpapp.data.dto.models.toSongInQueue
+import com.jetbrains.kmpapp.domain.models.SongInQueue
 import com.jetbrains.kmpapp.feature.messages.StateMessage
 import com.jetbrains.kmpapp.utils.MainUiState
 import io.github.aakira.napier.Napier
@@ -37,6 +38,9 @@ class PlaylistMessage : StateMessage {
             }
             Napier.e(tag = "PLAYLISTMESSAGE", message = value)
             // Обновляем состояние UI
+            uiState.update { currentState ->
+                currentState.copy(currentPlaylist = emptyList<SongInQueue>().toMutableList())
+            }
             uiState.update { currentState ->
                 currentState.copy(currentPlaylist = songs.toMutableList())
             }
