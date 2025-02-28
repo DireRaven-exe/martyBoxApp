@@ -2,19 +2,17 @@ package com.jetbrains.kmpapp.feature.commands
 
 import com.jetbrains.kmpapp.domain.models.Song
 import com.jetbrains.kmpapp.domain.models.SongInQueue
-import com.jetbrains.kmpapp.domain.models.toSong
 import com.jetbrains.kmpapp.ui.screens.main.MainViewModel
 
 class CommandHandler(viewModel: MainViewModel) : BaseCommandHandler(viewModel) {
 
     fun playSoundInPlaylist(id: Int, song: SongInQueue) {
-        viewModel.updateCurrentSong(song.toSong())
         sendCommand(
             type = 23,
             value = "$id",
             table = 0
         )
-        viewModel.updateQueue()
+        viewModel.removeSong(song)
     }
 
     fun appendMedia(song: Song) {
@@ -23,21 +21,16 @@ class CommandHandler(viewModel: MainViewModel) : BaseCommandHandler(viewModel) {
             value = "{\"tab\": \"${song.tab}\", \"id\": ${song.id}}",
             table = song.id
         )
-        //viewModel.addSongToQueue(song)
+
     }
 
     fun play(song: Song) {
-//        if (viewModel.mainUiState.value.currentSong == song) {
-//            viewModel.updateCurrentSong(null)
-//        } else {
-            viewModel.updateCurrentSong(song)
         sendCommand(
             type = 2,
             value = "{\"tab\": \"${song.tab}\", \"id\": ${song.id}}",
             table = 0
         )
         viewModel.updateQueue()
-        //}
     }
 
     fun moveSongInQueue(oldIndex: Int, newIndex: Int) {

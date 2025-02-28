@@ -24,11 +24,11 @@ class AppPreferencesRepositoryImpl(
 
     init {
         // Очистка данных при первом запуске
-        if (observableSettings.getBoolean("isFirstRun", true)) {
+        //if (observableSettings.getBoolean("isFirstRun", true)) {
             observableSettings.putString(KEY_QRCODE, "")
             observableSettings.putInt(KEY_TABLE_NUMBER, -1)
-            observableSettings.putBoolean("isFirstRun", false)
-        }
+         //   observableSettings.putBoolean("isFirstRun", false)
+        //}
     }
 
     override suspend fun saveQrCode(qrCode: String) {

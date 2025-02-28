@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -25,14 +26,15 @@ fun MainTopAppBar(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     onClearSearchQuery: () -> Unit,
-    onNavigateToQueue: () -> Unit
+    onNavigateToQueue: () -> Unit,
+    onNavigateToHome: () -> Unit
 ) {
     TopAppBar(
         title = {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 8.dp, end = 16.dp, top = 4.dp),
+                    .padding(start = 2.dp, end = 16.dp, top = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 CustomSearchView(
@@ -40,19 +42,33 @@ fun MainTopAppBar(
                     onValueChange = onSearchQueryChange,
                     onClearSearchQuery = onClearSearchQuery,
                     modifier = Modifier
-                        .fillMaxWidth(0.9f)
+                        .fillMaxWidth(1f)
                         .wrapContentHeight()
-                        .padding(end = 16.dp)
+                        //.padding(end = 16.dp)
                 )
 
-                IconButton(onClick = onNavigateToQueue) {
-                    Icon(
-                        imageVector = Icons.Default.Menu,
-                        contentDescription = "Queue",
-                        modifier = Modifier.size(36.dp),
-                        tint = LocalCustomColorsPalette.current.primaryIcon
-                    )
-                }
+
+
+            }
+        },
+        navigationIcon = {
+            IconButton(onClick = onNavigateToHome) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Home",
+                    modifier = Modifier.size(36.dp),
+                    tint = LocalCustomColorsPalette.current.primaryIcon
+                )
+            }
+        },
+        actions = {
+            IconButton(onClick = onNavigateToQueue) {
+                Icon(
+                    imageVector = Icons.Default.Menu,
+                    contentDescription = "Queue",
+                    modifier = Modifier.size(36.dp),
+                    tint = LocalCustomColorsPalette.current.primaryIcon
+                )
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
