@@ -23,7 +23,7 @@ class CommandHandler(viewModel: MainViewModel) : BaseCommandHandler(viewModel) {
             value = "{\"tab\": \"${song.tab}\", \"id\": ${song.id}}",
             table = song.id
         )
-        viewModel.addSongToQueue(song)
+        //viewModel.addSongToQueue(song)
     }
 
     fun play(song: Song) {
