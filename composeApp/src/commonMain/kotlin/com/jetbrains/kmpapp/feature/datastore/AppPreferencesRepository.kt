@@ -10,4 +10,5 @@ interface AppPreferencesRepository {
     suspend fun getQrCode(): Flow<String?>
 
     suspend fun getTableNumber(): Flow<Int?>
+    fun clearQrCode()
 }

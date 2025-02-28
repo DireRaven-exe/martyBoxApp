@@ -227,12 +227,18 @@ class MainViewModel(
                             _uiState.update { state ->
                                 state.copy(
                                     songs = state.songs.apply { addAll(updatedSongs) },
-                                    isLoading = !responseData.last,
-                                    isTabLoading = !responseData.last,
-                                    currentSongs = state.songs.filter { it.tab == _currentTab.value }
+                                    isLoading = !responseData.last
                                 )
                             }
                             Napier.d(tag = "AndroidWebSocket", message = "isLoading = ${_uiState.value.isLoading}\nisTabLoading = ${_uiState.value.isTabLoading}")
+                            if (responseData.last) {
+                                _uiState.update { state ->
+                                    state.copy(
+                                        isTabLoading = !responseData.last,
+                                        currentSongs = state.songs.filter { it.tab == _currentTab.value }
+                                    )
+                                }
+                            }
                         } else {
                             val updatedSongs = responseData.songs.map { song ->
                                 song.copy(tab = responseData.tab).toSongInQueue()

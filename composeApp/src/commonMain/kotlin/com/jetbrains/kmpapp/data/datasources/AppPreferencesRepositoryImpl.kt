@@ -32,7 +32,14 @@ class AppPreferencesRepositoryImpl(
     }
 
     override suspend fun saveQrCode(qrCode: String) {
+        Napier.d(tag = "AppPreferencesRepository", message = "Before QR code: ${observableSettings.getString(KEY_QRCODE)}")
         observableSettings.putString(key = KEY_QRCODE, value = qrCode)
+
+        Napier.d(tag = "AppPreferencesRepository", message = "After QR code: ${observableSettings.getString(KEY_QRCODE)}")
+    }
+
+    override fun clearQrCode() {
+        observableSettings.clear()
     }
 
     override suspend fun saveTableNumber(tableNumber: Int) {
