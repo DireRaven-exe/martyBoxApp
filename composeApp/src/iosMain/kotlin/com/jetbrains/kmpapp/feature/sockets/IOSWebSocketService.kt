@@ -3,9 +3,12 @@ package com.jetbrains.kmpapp.feature.sockets
 import com.jetbrains.kmpapp.data.sockets.KtorWebsocketClient
 import com.jetbrains.kmpapp.data.sockets.WebSocketConnectionState
 import com.jetbrains.kmpapp.data.sockets.WebSocketService
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,30 +23,35 @@ class IOSWebSocketService : WebSocketService {
     private val messageFlow = MutableSharedFlow<String>()
     private val connectionStateFlow = MutableStateFlow<WebSocketConnectionState>(WebSocketConnectionState.Disconnected)
     private val ktorClient = KtorWebsocketClient()
-    private var coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     init {
         ktorClient.updateCallbacks(object : KtorWebsocketClient.WebsocketEvents {
             override fun onReceive(data: String) {
-                coroutineScope.launch {
+                scope.launch {
                     messageFlow.emit(data)
                 }
             }
 
             override fun onConnected() {
-                coroutineScope.launch {
-                    connectionStateFlow.emit(WebSocketConnectionState.Connected)
+                if (connectionStateFlow.value != WebSocketConnectionState.Connected) {
+                    scope.launch {
+                        Napier.d(tag = "AndroidWebSocket", message = "onConnected function = $this")
+                        connectionStateFlow.emit(WebSocketConnectionState.Connected)
+                    }
                 }
             }
 
             override fun onDisconnected(reason: String) {
-                coroutineScope.launch {
-                    connectionStateFlow.emit(WebSocketConnectionState.Disconnected)
+                if (connectionStateFlow.value != WebSocketConnectionState.Disconnected) {
+                    scope.launch {
+                        connectionStateFlow.emit(WebSocketConnectionState.Disconnected)
+                    }
                 }
             }
 
             override fun onPingMessage() {
-                coroutineScope.launch {
+                scope.launch {
                     println("Ping received from server")
                 }
             }
@@ -51,11 +59,10 @@ class IOSWebSocketService : WebSocketService {
     }
 
     override fun connect(url: String) {
-        coroutineScope.launch {
+        scope.launch {
             try {
                 ktorClient.updateKtorWebsocketClient(url)
                 ktorClient.connect()
-                connectionStateFlow.emit(WebSocketConnectionState.Connected)
             } catch (e: Exception) {
                 connectionStateFlow.emit(WebSocketConnectionState.Error("Connection failed: ${e.message}"))
             }
@@ -63,18 +70,21 @@ class IOSWebSocketService : WebSocketService {
     }
 
     override fun disconnect() {
-        coroutineScope.launch {
+        scope.launch {
             try {
                 ktorClient.stop()
                 connectionStateFlow.emit(WebSocketConnectionState.Disconnected)
             } catch (e: Exception) {
                 connectionStateFlow.emit(WebSocketConnectionState.Error("Disconnection failed: ${e.message}"))
+            } finally {
+                scope.cancel() // Завершение scope для освобождения ресурсов
+                scope = CoroutineScope(Dispatchers.IO + SupervisorJob()) // Новый scope для повторного подключения
             }
         }
     }
 
     override fun sendMessage(message: String) {
-        coroutineScope.launch {
+        scope.launch {
             try {
                 ktorClient.send(message)
             } catch (e: Exception) {
