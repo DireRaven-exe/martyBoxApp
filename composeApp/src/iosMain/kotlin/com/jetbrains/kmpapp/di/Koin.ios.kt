@@ -10,5 +10,5 @@ import org.koin.dsl.module
 
 actual fun platformModule(): Module = module {
     single { MultiplatformSettingsWrapper().createSettings() }
-    single<WebSocketService> { IOSWebSocketService() }
+    single<WebSocketService> { IOSWebSocketService(get()) }
 }

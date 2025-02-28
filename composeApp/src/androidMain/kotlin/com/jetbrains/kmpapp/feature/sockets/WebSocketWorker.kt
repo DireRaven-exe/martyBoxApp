@@ -30,7 +30,7 @@ class WebSocketWorker : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
         }
-        webSocketService = AndroidWebSocketService()
+        webSocketService = AndroidWebSocketService(get())
         startForegroundService()
         appPreferencesRepository = get()
     }

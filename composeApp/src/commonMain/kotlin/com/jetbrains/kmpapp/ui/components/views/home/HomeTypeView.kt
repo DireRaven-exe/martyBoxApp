@@ -48,6 +48,7 @@ fun HomeTypeView(
     commandHandler: CommandHandler,
     uiState: MainUiState,
     paddingValues: PaddingValues,
+    onNavigateToHome: () -> Unit
 ) {
     var searchQuery by remember  { mutableStateOf(uiState.searchQuery) }
     val scaffoldState = rememberBottomSheetScaffoldState()
@@ -148,7 +149,9 @@ fun HomeTypeView(
                     onNavigateToQueue = {
                         commandHandler.updateQueue()
                         isQueueOpen = true
-                    }
+                    },
+                    onNavigateToHome = onNavigateToHome
+
                 )
             }
         },

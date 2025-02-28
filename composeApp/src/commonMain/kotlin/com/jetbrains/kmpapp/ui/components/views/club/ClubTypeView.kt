@@ -28,6 +28,7 @@ fun ClubTypeView(
     uiState: MainUiState,
     commandHandler: CommandHandler,
     paddingValues: PaddingValues,
+    onNavigateToHome: () -> Unit
 ) {
     var searchQuery by rememberSaveable { mutableStateOf(uiState.searchQuery) }
 
@@ -79,7 +80,8 @@ fun ClubTypeView(
                     onNavigateToQueue = {
                         commandHandler.updateQueue()
                         isQueueOpen = true
-                    }
+                    },
+                    onNavigateToHome = onNavigateToHome
                 )
             }
         },

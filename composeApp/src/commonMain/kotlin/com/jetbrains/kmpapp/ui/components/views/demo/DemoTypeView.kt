@@ -148,6 +148,9 @@ fun DemoTypeView(
                     onNavigateToQueue = {
                         viewModel.updateQueue()
                         isQueueOpen = true
+                    },
+                    onNavigateToHome = {
+
                     }
                 )
             }

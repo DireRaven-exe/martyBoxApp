@@ -19,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -68,7 +69,7 @@ fun MainScreen(
     val savedQrCode = uiState.savedQrCode
     var showTableDialog = false
     var showDisconnectedDialog by rememberSaveable { mutableStateOf(false) }
-    var showConfirmDisconnectionDialog = false
+    var showConfirmDisconnectionDialog by remember { mutableStateOf(false) }
     var isManuallyDisconnected by rememberSaveable { mutableStateOf(false) }
     var isReconnectAllowed  by rememberSaveable { mutableStateOf(true) }
 
@@ -200,6 +201,9 @@ fun MainScreen(
                     uiState = uiState,
                     commandHandler = commandHandler,
                     paddingValues = paddingValues,
+                    onNavigateToHome = {
+                        showConfirmDisconnectionDialog = true
+                    }
                 )
             }
             Constants.TYPE_CLUB -> {
@@ -208,6 +212,9 @@ fun MainScreen(
                         uiState = uiState,
                         commandHandler = commandHandler,
                         paddingValues = paddingValues,
+                        onNavigateToHome = {
+                            showConfirmDisconnectionDialog = true
+                        }
                     )
                 } else {
                     showTableDialog = true

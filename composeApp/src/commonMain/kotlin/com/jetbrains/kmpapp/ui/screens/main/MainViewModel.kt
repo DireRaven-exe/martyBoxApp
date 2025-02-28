@@ -245,7 +245,7 @@ class MainViewModel(
                             }
                             _uiState.update { state ->
                                 state.copy(
-                                    currentPlaylist = (state.currentPlaylist + updatedSongs).toMutableList(),
+                                    currentPlaylist = updatedSongs.toMutableList(),
                                 )
                             }
                         }
@@ -309,6 +309,9 @@ class MainViewModel(
     }
 
     override fun updateQueue() {
+        _uiState.update { state ->
+            state.copy(currentPlaylist = emptyList<SongInQueue>().toMutableList())
+        }
         onPingMessage()
     }
 

@@ -1,8 +1,10 @@
 package com.jetbrains.kmpapp.feature.sockets
 
+import com.jetbrains.kmpapp.data.dto.models.Command
 import com.jetbrains.kmpapp.data.sockets.KtorWebsocketClient
 import com.jetbrains.kmpapp.data.sockets.WebSocketConnectionState
 import com.jetbrains.kmpapp.data.sockets.WebSocketService
+import com.jetbrains.kmpapp.feature.datastore.AppPreferencesRepository
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -12,18 +14,20 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-
-object WebSocketServiceHolder {
-    val webSocketService: WebSocketService = IOSWebSocketService()
-}
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 
-class IOSWebSocketService : WebSocketService {
+class IOSWebSocketService(
+    val appPreferencesRepository: AppPreferencesRepository
+) : WebSocketService {
     private val messageFlow = MutableSharedFlow<String>()
     private val connectionStateFlow = MutableStateFlow<WebSocketConnectionState>(WebSocketConnectionState.Disconnected)
     private val ktorClient = KtorWebsocketClient()
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    protected val json = Json { ignoreUnknownKeys = true }
 
     init {
         ktorClient.updateCallbacks(object : KtorWebsocketClient.WebsocketEvents {
@@ -52,6 +56,8 @@ class IOSWebSocketService : WebSocketService {
 
             override fun onPingMessage() {
                 scope.launch {
+                    appPreferencesRepository.getTableNumber().first()
+                        ?.let { sendCommand(type = 26, value = "[\"playlist\"]", table = it) }
                     println("Ping received from server")
                 }
             }
@@ -89,6 +95,17 @@ class IOSWebSocketService : WebSocketService {
                 ktorClient.send(message)
             } catch (e: Exception) {
                 connectionStateFlow.emit(WebSocketConnectionState.Error("Failed to send message: ${e.message}"))
+            }
+        }
+    }
+
+    private fun sendCommand(type: Int, value: String, table: Int) {
+        scope.launch(Dispatchers.IO) {
+            try {
+                val command = json.encodeToString(Command(type, value, table))
+                ktorClient.send(command)
+            } catch (e: Exception) {
+                Napier.e(tag = "WebSocket", message = "Failed to send command: ${e.message}")
             }
         }
     }
