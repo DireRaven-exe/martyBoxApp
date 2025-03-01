@@ -92,14 +92,14 @@ fun HomeScreen(
                         Icon(
                             painter = painterResource(Res.drawable.qr_code),
                             contentDescription = "QR Code",
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(28.dp),
                             tint = LocalCustomColorsPalette.current.primaryText
                         )
                         Text(
                             text = stringResource(Res.string.scan),
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodyMedium
                                 .copy(color = LocalCustomColorsPalette.current.primaryText),
-                            maxLines = 1,
+                            maxLines = 2,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(start = 5.dp)
                         )
