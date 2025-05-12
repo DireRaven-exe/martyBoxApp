@@ -6,4 +6,8 @@
 //  Copyright © 2025 orgName. All rights reserved.
 //
 
-NSCameraUsageDescription="Требуется доступ к камере для сканирования QR-кода";
+"NSCameraUsageDescription"="Требуется доступ к камере для сканирования QR-кода";
+
+//<key>NSCameraUsageDescription</key>
+//<string>Требуется доступ к камере для сканирования QR-кода</string>
+
