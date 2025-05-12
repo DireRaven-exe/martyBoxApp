@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ServerData(
-    val tabs: List<String>,
-    val type: String,
-    val tables: Int
+    val tabs: List<String> = emptyList(),
+    val type: String = "",
+    val tables: Int = 0,
+    val version: String = ""
 )

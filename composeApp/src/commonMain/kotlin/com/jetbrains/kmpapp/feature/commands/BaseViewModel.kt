@@ -41,6 +41,8 @@ abstract class BaseViewModel(
 
     abstract fun removeSong(songInQueue: SongInQueue)
 
+    abstract fun changePlayingOrder(value: Boolean)
+
     abstract fun clearQueue()
 
     fun clearSavedQrCode() {

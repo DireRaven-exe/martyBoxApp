@@ -97,4 +97,14 @@ class CommandHandler(viewModel: MainViewModel) : BaseCommandHandler(viewModel) {
     fun clearLocalQueue() {
         viewModel.clearQueue()
     }
+
+    fun changePlayingOrder(value: Boolean) {
+        sendCommand(
+            type = 30,
+            value = "$value",
+            table = 0
+        )
+        viewModel.changePlayingOrder(value)
+    }
+
 }

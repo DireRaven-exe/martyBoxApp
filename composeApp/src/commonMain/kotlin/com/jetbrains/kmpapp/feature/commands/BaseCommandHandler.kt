@@ -86,6 +86,7 @@ abstract class BaseCommandHandler(
         )
     }
 
+
     fun removeSong(song: SongInQueue) {
         viewModel.removeSong(song)
     }

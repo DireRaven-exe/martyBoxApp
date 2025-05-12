@@ -7,6 +7,7 @@ import com.jetbrains.kmpapp.feature.messages.states.HasPlusMessage
 import com.jetbrains.kmpapp.feature.messages.states.NothingMessage
 import com.jetbrains.kmpapp.feature.messages.states.PitchMessage
 import com.jetbrains.kmpapp.feature.messages.states.PlayingMessage
+import com.jetbrains.kmpapp.feature.messages.states.PlayingOrderMessage
 import com.jetbrains.kmpapp.feature.messages.states.PlaylistMessage
 import com.jetbrains.kmpapp.feature.messages.states.SingingAssessmentMessage
 import com.jetbrains.kmpapp.feature.messages.states.SongMessage
@@ -28,6 +29,7 @@ object States {
         "SingingAssessment" to SingingAssessmentMessage(),
         "SoundInPause" to SoundInPauseMessage(),
         "playlist" to PlaylistMessage(),
+        "PlayingOrder" to PlayingOrderMessage()
     )
 
     fun getMessage(key: String): StateMessage {
