@@ -106,6 +106,10 @@ class DemoViewModel(
         }
     }
 
+    override fun changePlayingOrder(value: Boolean) {
+        TODO("Not yet implemented")
+    }
+
     override fun sendCommand(type: Int, value: String, table: Int) {}
 
     override fun onReceive(data: String) {}

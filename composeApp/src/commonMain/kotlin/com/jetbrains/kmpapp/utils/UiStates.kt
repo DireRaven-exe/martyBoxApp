@@ -10,7 +10,7 @@ import com.jetbrains.kmpapp.domain.models.SongInQueue
 data class MainUiState(
     val songs: SnapshotStateList<Song> = SnapshotStateList(),
     val currentPlaylist: MutableList<SongInQueue> = mutableListOf(),
-    val serverData: ServerData = ServerData(emptyList(),"", 0),
+    val serverData: ServerData = ServerData(),
     val searchQuery: String = "",
     val currentSong: Song? = null,
     val isPlaying: Boolean = false,
@@ -28,6 +28,7 @@ data class MainUiState(
     val isServerConnected: Boolean = true,
     val isLoading: Boolean = true,
     val isTabLoading: Boolean = true,
+    val playingOrder: Boolean = true,
     val currentSongs: List<Song> = emptyList(),
     val error: String? = null,
 )
@@ -50,7 +51,7 @@ data class HomeUiState(
 data class DemoUiState(
     val songs: SnapshotStateList<Song> = SnapshotStateList(),
     val currentPlaylist: MutableList<SongInQueue> = mutableListOf(),
-    val serverData: ServerData = ServerData(emptyList(),"", 0),
+    val serverData: ServerData = ServerData(),
     val searchQuery: String = "",
     val currentSong: Song? = null,
     val isPlaying: Boolean = false,

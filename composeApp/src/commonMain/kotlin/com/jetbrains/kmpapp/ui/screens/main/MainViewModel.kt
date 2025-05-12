@@ -116,6 +116,12 @@ class MainViewModel(
         }
     }
 
+    override fun changePlayingOrder(value: Boolean) {
+        _uiState.update { state ->
+            state.copy(playingOrder = value)
+        }
+    }
+
     override fun sendCommand(type: Int, value: String, table: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -204,11 +210,13 @@ class MainViewModel(
             }
 
             if (!isStateMessage) {
-                if (jsonObject.containsKeys("type", "tables", "tabs")) {
+                if (jsonObject.containsKeys("type", "tables", "tabs", "version")) {
                     try {
                         val responseData = json.decodeFromString<ResponseDto>(jsonString)
                         dataProcessed = true
                         _uiState.value = _uiState.value.copy(serverData = responseData.toServerData())
+                        Napier.e(tag = "SERVERVERSION", message = "SERVER VERSION = ${_uiState.value.serverData.version}")
+
                         _currentTab.value = responseData.tabs[0]
                         sendCommand(type = 17, value = "", table = _uiState.value.currentTable)
                         sendCommand(type = 1, value = "", table = _uiState.value.currentTable)
@@ -228,7 +236,7 @@ class MainViewModel(
                                 state.copy(
                                     songs = state.songs.apply { addAll(updatedSongs) },
                                     isLoading = !responseData.last
-                                )
+                            )
                             }
                             Napier.d(tag = "AndroidWebSocket", message = "isLoading = ${_uiState.value.isLoading}\nisTabLoading = ${_uiState.value.isTabLoading}")
                             if (responseData.last) {

@@ -34,7 +34,9 @@ import com.jetbrains.kmpapp.utils.MainUiState
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.artist
 import martyboxapp.composeapp.generated.resources.next
+import martyboxapp.composeapp.generated.resources.noshuffle
 import martyboxapp.composeapp.generated.resources.pause
+import martyboxapp.composeapp.generated.resources.shuffle
 import martyboxapp.composeapp.generated.resources.singingAssessment
 import martyboxapp.composeapp.generated.resources.soundInPause
 import martyboxapp.composeapp.generated.resources.stop
@@ -102,6 +104,7 @@ fun MainBottomSheetContentView(
                     )
                 }
             }
+
             IconButton(onClick = { commandHandler.next() }) {
                 Icon(
                     painter = painterResource(Res.drawable.next),
@@ -137,6 +140,27 @@ fun MainBottomSheetContentView(
                     modifier = Modifier.size(36.dp),
                     tint = LocalCustomColorsPalette.current.primaryIcon
                 )
+            }
+
+            IconButton(onClick = {
+                commandHandler.changePlayingOrder(!uiState.playingOrder)
+
+            }) {
+                if (uiState.playingOrder) {
+                    Icon(
+                        painter = painterResource(Res.drawable.shuffle),
+                        contentDescription = "Play",
+                        modifier = Modifier.size(32.dp),
+                        tint = songCardPrimaryContent
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(Res.drawable.noshuffle),
+                        contentDescription = "Pause",
+                        modifier = Modifier.size(32.dp),
+                        tint = songCardPrimaryContent
+                    )
+                }
             }
         }
         SlidersView(

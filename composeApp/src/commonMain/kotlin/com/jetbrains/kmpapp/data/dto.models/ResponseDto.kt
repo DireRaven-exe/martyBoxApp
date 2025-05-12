@@ -5,18 +5,26 @@ import com.jetbrains.kmpapp.domain.models.ServerData
 import com.jetbrains.kmpapp.domain.models.Song
 import com.jetbrains.kmpapp.domain.models.SongInQueue
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonTransformingSerializer
 
 @Immutable
 @Serializable
 data class ResponseDto(
     val type: String,
     val tables: Int,
-    val tabs: List<String>//List<Map<String, List<SongDto>>>
+    val tabs: List<String>,//List<Map<String, List<SongDto>>>
+    val version: String
 )
 
 @Serializable
 data class ResponseSongsForTabDto(
     val last: Boolean,
+    @Serializable(with = SongsListDeserializer::class)
     val songs: List<SongDto>,
     val tab: String,
     val isBase: Boolean
@@ -61,7 +69,7 @@ fun SongDto.toSongInQueue(): SongInQueue {
 }
 
 fun ResponseDto.toServerData(): ServerData {
-    return ServerData(emptyList(), type, tables)
+    return ServerData(emptyList(), type, tables, version)
 }
 
 @Serializable
@@ -71,3 +79,16 @@ data class Command(
     val table: Int
 )
 
+object SongsListDeserializer : JsonTransformingSerializer<List<SongDto>>(ListSerializer(SongDto.serializer())) {
+    override fun transformDeserialize(element: JsonElement): JsonElement {
+        return if (element is JsonPrimitive && element.isString) {
+            try {
+                Json.parseToJsonElement(element.content) // Превращаем строку в JSON
+            } catch (e: Exception) {
+                JsonArray(emptyList()) // Если ошибка — возвращаем пустой массив
+            }
+        } else {
+            element
+        }
+    }
+}

@@ -47,7 +47,6 @@ multiplatformSettings-noArg = { module = "com.russhwolf:multiplatform-settings-n
 multiplatform-settings-coroutines = { module = "com.russhwolf:multiplatform-settings-coroutines", version.ref = "multiplatformSettings" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 gradle-plugin = { module = "io.github.skeptick.libres:gradle-plugin", version.ref = "libresCompose" }
-libres-compose = { module = "io.github.skeptick.libres:libres-compose", version.ref = "libresCompose" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 napier = { module = "io.github.aakira:napier", version.ref = "napier" }
 androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camera" }
