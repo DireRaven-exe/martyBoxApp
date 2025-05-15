@@ -7,12 +7,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,12 +34,15 @@ import com.jetbrains.kmpapp.ui.components.views.SlidersView
 import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
 import com.jetbrains.kmpapp.ui.theme.songCardPrimaryContent
 import com.jetbrains.kmpapp.ui.theme.songCardSecondaryContent
+import com.jetbrains.kmpapp.utils.Constants
 import com.jetbrains.kmpapp.utils.MainUiState
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.artist
 import martyboxapp.composeapp.generated.resources.next
 import martyboxapp.composeapp.generated.resources.noshuffle
 import martyboxapp.composeapp.generated.resources.pause
+import martyboxapp.composeapp.generated.resources.play_playlist
+import martyboxapp.composeapp.generated.resources.play_tab
 import martyboxapp.composeapp.generated.resources.shuffle
 import martyboxapp.composeapp.generated.resources.singingAssessment
 import martyboxapp.composeapp.generated.resources.soundInPause
@@ -50,7 +57,8 @@ import org.jetbrains.compose.resources.stringResource
 fun MainBottomSheetContentView(
     uiState: MainUiState,
     commandHandler: CommandHandler,
-    elementsAlpha: Float
+    elementsAlpha: Float,
+    onPlayingOrderChanged: () -> Unit
 ) {
     Box(
         Modifier
@@ -119,50 +127,74 @@ fun MainBottomSheetContentView(
         modifier = Modifier.alpha(elementsAlpha)
             .padding(start = 12.dp, end = 12.dp, bottom = 8.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(
-                enabled = uiState.hasPlus,
-                onClick = { commandHandler.switchPlusMinus() }
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = LocalCustomColorsPalette.current.cardCurrentSongBackground
+                    ),
+                    shape = RoundedCornerShape(10.dp),
+                    onClick = { commandHandler.playTab(Constants.PLAYLIST_TAB_NAME) }
+                ) {
+                    Icon(
+                        painter = painterResource(Res.drawable.play_tab),
+                        contentDescription = "playTab",
+                        modifier = Modifier.size(32.dp),
+                        tint = songCardSecondaryContent
+                    )
+                    Spacer(modifier = Modifier.width(15.dp))
+                    Text(
+                        text = stringResource(Res.string.play_playlist),
+                        color = LocalCustomColorsPalette.current.secondaryText
+                    )
+                }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
             ) {
-                Icon(
-                    painter = painterResource(Res.drawable.voice),
-                    contentDescription = "Has plus",
-                    modifier = Modifier.size(28.dp),
-                )
-            }
-            IconButton(onClick = { commandHandler.stop() }) {
-                Icon(
-                    painter = painterResource(Res.drawable.stop),
-                    contentDescription = "Stop",
-                    modifier = Modifier.size(36.dp),
-                    tint = LocalCustomColorsPalette.current.primaryIcon
-                )
-            }
-
-            IconButton(onClick = {
-                commandHandler.changePlayingOrder(!uiState.playingOrder)
-
-            }) {
-                if (uiState.playingOrder) {
+                IconButton(
+                    enabled = uiState.hasPlus,
+                    onClick = { commandHandler.switchPlusMinus() }
+                ) {
                     Icon(
-                        painter = painterResource(Res.drawable.shuffle),
-                        contentDescription = "Play",
-                        modifier = Modifier.size(32.dp),
-                        tint = songCardPrimaryContent
+                        painter = painterResource(Res.drawable.voice),
+                        contentDescription = "Has plus",
+                        modifier = Modifier.size(28.dp),
                     )
-                } else {
+                }
+                IconButton(onClick = { commandHandler.stop() }) {
                     Icon(
-                        painter = painterResource(Res.drawable.noshuffle),
-                        contentDescription = "Pause",
-                        modifier = Modifier.size(32.dp),
-                        tint = songCardPrimaryContent
+                        painter = painterResource(Res.drawable.stop),
+                        contentDescription = "Stop",
+                        modifier = Modifier.size(36.dp),
+                        tint = LocalCustomColorsPalette.current.primaryIcon
                     )
+                }
+
+                IconButton(onClick = {
+                    commandHandler.changePlayingOrder(!uiState.playingOrder)
+                    onPlayingOrderChanged()
+                }) {
+                    if (uiState.playingOrder) {
+                        Icon(
+                            painter = painterResource(Res.drawable.shuffle),
+                            contentDescription = "Play",
+                            modifier = Modifier.size(32.dp),
+                            tint = songCardPrimaryContent
+                        )
+                    } else {
+                        Icon(
+                            painter = painterResource(Res.drawable.noshuffle),
+                            contentDescription = "Pause",
+                            modifier = Modifier.size(32.dp),
+                            tint = songCardPrimaryContent
+                        )
+                    }
                 }
             }
         }
+
         SlidersView(
             uiState = uiState,
             commandHandler = commandHandler

@@ -31,7 +31,12 @@
     <string name="cancel">Cancel</string>
     <string name="filters">Filters</string>
     <string name="queue">Queue</string>
+    <string name="playlist">Playlist</string>
     <string name="orders">My Orders</string>
     <string name="to_home">Exit to the main screen</string>
     <string name="exit_demo_mode">Exit demo mode</string>
+    <string name="play_playlist">Play playlist</string>
+    <string name="setRandomPlayingOrder">Random playback order is set</string>
+    <string name="setDirectPlayingOrder">Direct playback order is set</string>
+    <string name="skip">Skip</string>
 </resources>

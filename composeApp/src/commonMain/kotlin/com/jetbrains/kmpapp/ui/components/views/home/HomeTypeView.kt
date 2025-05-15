@@ -13,6 +13,9 @@ import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,10 +36,13 @@ import com.jetbrains.kmpapp.ui.theme.LocalCustomColorsPalette
 import com.jetbrains.kmpapp.utils.MainUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import martyboxapp.composeapp.generated.resources.Res
 import martyboxapp.composeapp.generated.resources.moveBottomSheet
-import martyboxapp.composeapp.generated.resources.queue
+import martyboxapp.composeapp.generated.resources.playlist
+import martyboxapp.composeapp.generated.resources.setDirectPlayingOrder
+import martyboxapp.composeapp.generated.resources.setRandomPlayingOrder
 import martyboxapp.composeapp.generated.resources.swipe_down
 import martyboxapp.composeapp.generated.resources.swipe_up
 import org.jetbrains.compose.resources.painterResource
@@ -52,6 +59,9 @@ fun HomeTypeView(
 ) {
     var searchQuery by remember  { mutableStateOf(uiState.searchQuery) }
     val scaffoldState = rememberBottomSheetScaffoldState()
+
+    val snackBarHostState = remember { SnackbarHostState() }
+    val localCoroutineScope = rememberCoroutineScope()
 
     val animatedSheetContainerColor by animateColorAsState(
         targetValue = when (scaffoldState.bottomSheetState.targetValue) {
@@ -89,6 +99,9 @@ fun HomeTypeView(
     var isQueueOpen by remember { mutableStateOf(false) }
 
     val lazyListState = rememberLazyListState()
+
+    val setRandomPlayingOrderMessage = stringResource(Res.string.setRandomPlayingOrder)
+    val setDirectPlayingOrderMessage = stringResource(Res.string.setDirectPlayingOrder)
 
     LaunchedEffect(Unit) {
         elementsAlpha.animateTo(
@@ -130,11 +143,12 @@ fun HomeTypeView(
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
+        snackbarHost = { SnackbarHost(snackBarHostState) },
         topBar = {
             if(isQueueOpen) {
                 QueueTopAppBar(
                     type = uiState.serverData.type,
-                    title = stringResource(Res.string.queue),
+                    title = stringResource(Res.string.playlist),
                     onSheetQueueClose = {
                         isQueueOpen = false
                         commandHandler.clearLocalQueue()
@@ -185,7 +199,21 @@ fun HomeTypeView(
             MainBottomSheetContentView(
                 uiState = uiState,
                 commandHandler = commandHandler,
-                elementsAlpha = elementsAlpha.value
+                elementsAlpha = elementsAlpha.value,
+                onPlayingOrderChanged = {
+                    localCoroutineScope.launch {
+                        val message = if (uiState.playingOrder) {
+                            setDirectPlayingOrderMessage
+                        } else {
+                            setRandomPlayingOrderMessage
+                        }
+                        snackBarHostState.showSnackbar(
+                            message = message,
+                            withDismissAction = true,
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                }
             )
         }
     ) { contentPadding ->
@@ -195,7 +223,7 @@ fun HomeTypeView(
                 commandHandler = commandHandler,
                 lazyListState = lazyListState,
                 contentPadding = contentPadding,
-                paddingValues = paddingValues
+                paddingValues = paddingValues,
             )
         } else {
             HomeContentView(

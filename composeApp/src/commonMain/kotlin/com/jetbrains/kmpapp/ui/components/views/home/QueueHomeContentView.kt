@@ -31,7 +31,7 @@ fun QueueHomeContentView(
     commandHandler: CommandHandler,
     paddingValues: PaddingValues,
     lazyListState: LazyListState,
-    contentPadding: PaddingValues,
+    contentPadding: PaddingValues
 ) {
 
     val keyMap = remember { mutableStateMapOf<Int, String>() }

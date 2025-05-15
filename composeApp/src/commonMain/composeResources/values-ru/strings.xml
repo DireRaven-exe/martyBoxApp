@@ -31,8 +31,13 @@
     <string name="cancel">Отмена</string>
     <string name="filters">Фильтры</string>
     <string name="queue">Очередь</string>
+    <string name="playlist">Плейлист</string>
     <string name="orders">Мои заказы</string>
     <string name="to_home">Выйти на главный экран</string>
     <string name="exit_demo_mode">Выйти из демонстрационного режима</string>
+    <string name="play_playlist">Проиграть плейлист</string>
+    <string name="setRandomPlayingOrder">Установлен случайный порядок проигрывания</string>
+    <string name="setDirectPlayingOrder">Установлен прямой порядок проигрывания</string>
+    <string name="skip">Скрыть</string>
 
 </resources>

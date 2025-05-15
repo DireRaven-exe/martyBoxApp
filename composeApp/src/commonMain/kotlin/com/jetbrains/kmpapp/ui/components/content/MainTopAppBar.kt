@@ -44,7 +44,6 @@ fun MainTopAppBar(
                     modifier = Modifier
                         .fillMaxWidth(1f)
                         .wrapContentHeight()
-                        //.padding(end = 16.dp)
                 )
 
 
