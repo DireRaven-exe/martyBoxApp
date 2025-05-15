@@ -21,13 +21,26 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>1.2</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>3</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
     <key>NSCameraUsageDescription</key>
     <string>Требуется доступ к камере для сканирования QR-кода</string>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Приложению требуется доступ к локальной сети для подключения к серверу.</string>
+    <key>NSBonjourServices</key>
+    <array>
+        <string>_ws._tcp</string>
+    </array>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Need</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

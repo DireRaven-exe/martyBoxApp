@@ -218,6 +218,7 @@ class MainViewModel(
                         Napier.e(tag = "SERVERVERSION", message = "SERVER VERSION = ${_uiState.value.serverData.version}")
 
                         _currentTab.value = responseData.tabs[0]
+                        sendCommand(type = 17, value = "", table = _uiState.value.currentTable)
                         sendCommand(type = 1, value = "", table = _uiState.value.currentTable)
                     } catch (e: Exception) {
                         Napier.e(tag = "WebSocket", message = "Error parsing ResponseDto: ${e.message}")
@@ -256,7 +257,7 @@ class MainViewModel(
                                 )
                             }
                         }
-                        sendCommand(type = 17, value = "", table = _uiState.value.currentTable)
+
                     }
                     Napier.w(tag = "WebSocket", message = "Received unexpected message format: $jsonString")
                 }
