@@ -92,6 +92,14 @@ fun MainBottomSheetContentView(
                     color = songCardSecondaryContent
                 )
             }
+            IconButton(onClick = { commandHandler.stop() }) {
+                Icon(
+                    painter = painterResource(Res.drawable.stop),
+                    contentDescription = "Stop",
+                    modifier = Modifier.size(36.dp),
+                    tint = LocalCustomColorsPalette.current.primaryIcon
+                )
+            }
             IconButton(onClick = {
                 if (!uiState.isPlaying) commandHandler.playAfterPause()
                 else commandHandler.pause()
@@ -163,14 +171,7 @@ fun MainBottomSheetContentView(
                         modifier = Modifier.size(28.dp),
                     )
                 }
-                IconButton(onClick = { commandHandler.stop() }) {
-                    Icon(
-                        painter = painterResource(Res.drawable.stop),
-                        contentDescription = "Stop",
-                        modifier = Modifier.size(36.dp),
-                        tint = LocalCustomColorsPalette.current.primaryIcon
-                    )
-                }
+
 
                 IconButton(onClick = {
                     commandHandler.changePlayingOrder(!uiState.playingOrder)
